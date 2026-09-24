@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard BI - Gestão de Produtos</title>
+    <!-- Tailwind CSS para estilização moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para os gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header do Dashboard -->
+    <header class="bg-indigo-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">📊 Dashboard Executivo de Produtos</h1>
+            <span class="text-xs bg-indigo-800 px-3 py-1 rounded-full mt-2 sm:mt-0">Atualizado: Setembro/2026</span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+
+        <!-- Cards de Indicadores (KPIs) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <p class="text-sm font-medium text-gray-500">Total de Produtos</p>
+                <p id="kpi-total" class="text-3xl font-bold text-indigo-600 mt-2">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <p class="text-sm font-medium text-gray-500">Média Preço de Venda</p>
+                <p id="kpi-venda" class="text-3xl font-bold text-emerald-600 mt-2">R$ 0,00</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <p class="text-sm font-medium text-gray-500">Média PMC</p>
+                <p id="kpi-pmc" class="text-3xl font-bold text-blue-600 mt-2">R$ 0,00</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <p class="text-sm font-medium text-gray-500">Média PF</p>
+                <p id="kpi-pf" class="text-3xl font-bold text-purple-600 mt-2">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- Seção de Filtros -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Filtros do Relatório</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Pesquisar Produto</label>
+                    <input type="text" id="filtro-nome" placeholder="Digite o nome do produto..." 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Grupo do Produto</label>
+                    <select id="filtro-grupo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Todos os Grupos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Seção</label>
+                    <select id="filtro-secao" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Todas as Seções</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos BI -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-md font-semibold text-gray-700 mb-4">Produtos por Seção</h3>
+                <div class="relative h-72">
+                    <canvas id="chartSecao"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-md font-semibold text-gray-700 mb-4">Distribuição por Status de Compra</h3>
+                <div class="relative h-72">
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Dados -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-md font-semibold text-gray-700">Detalhamento dos SKUs</h3>
+                <span id="contador-linhas" class="text-xs text-gray-500 font-medium">Mostrando 0 registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                            <th class="py-3 px-4 font-semibold">Produto</th>
+                            <th class="py-3 px-4 font-semibold">Grupo</th>
+                            <th class="py-3 px-4 font-semibold">Seção</th>
+                            <th class="py-3 px-4 font-semibold">Status Compra</th>
+                            <th class="py-3 px-4 font-semibold text-right">PF (R$)</th>
+                            <th class="py-3 px-4 font-semibold text-right">PMC (R$)</th>
+                            <th class="py-3 px-4 font-semibold text-right">Preço Venda (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-dados" class="divide-y divide-gray-200 text-sm text-gray-700">
+                        <!-- Preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de lógica e dados -->
+    <script>
+        // Dados brutos fornecidos
+        const dadosProdutos = [
+            { produto: "1 - A A S AD 500MG 10CPR", grupo: "DOR E FEBRE", secao: "OTC AVULSO", status: "SUSPENSO", situacao: "Ativo", pf: 4.69, pmc: 6.23, venda: 6.09 },
+            { produto: "2 - A A S INF 100MG 10CPR", grupo: "DOR E FEBRE", secao: "OTC AVULSO", status: "SUSPENSO", situacao: "Ativo", pf: 134.81, pmc: 8.71, venda: 8.49 },
+            { produto: "4 - A A S INF 100MG 30CPR", grupo: "DOR E FEBRE", secao: "OTC", status: "SUSPENSO", situacao: "Ativo", pf: 18.79, pmc: 25.39, venda: 25.39 },
+            { produto: "5 - A A S PROTECT 100MG 30CPR", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "SUSPENSO", situacao: "Ativo", pf: 18.42, pmc: 24.49, venda: 22.49 },
+            { produto: "8 - A SAÚDE DA MULHER FR X 150 ML", grupo: "DOR E FEBRE", secao: "OTC", status: "ATIVO", situacao: "Ativo", pf: 18.61, pmc: 24.96, venda: 21.34 },
+            { produto: "15 - ABLOK 100MG 30CPR", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 51.07, pmc: 70.39, venda: 55.41 },
+            { produto: "16 - ABLOK 25MG 30CPR", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 12.31, pmc: 16.96, venda: 9.46 },
+            { produto: "17 - ABLOK 50MG 30CPR", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 31.2, pmc: 43, venda: 35.56 },
+            { produto: "18 - ABLOK PLUS 100/25MG 30CPR *", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 60.76, pmc: 83.75, venda: 74.65 },
+            { produto: "19 - ABLOK PLUS 25/12,5MG 30CPR", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 20.39, pmc: 28.1, venda: 25.87 },
+            { produto: "20 - ABLOK PLUS 50/12,5MG 30CPR", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 37.66, pmc: 51.91, venda: 43.67 },
+            { produto: "22 - ABRILAR XPE 100ML", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 44.85, pmc: 60.17, venda: 54.05 },
+            { produto: "23 - ABRILAR XPE 200ML", grupo: "PRESCRICAO", secao: "PRESCRICAO", status: "ATIVO", situacao: "Ativo", pf: 85.53, pmc: 114.74, venda: 99.7 },
+            { produto: "27 - ABS ALWAYS DIA SECA C/ABAS P 32UN L+P-", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 12.54, pmc: 21.29, venda: 21.29 },
+            { produto: "28 - ABS ALWAYS DIA SECA C/ABAS P 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.64, pmc: 6.39, venda: 6.39 },
+            { produto: "31 - ABS ALWAYS DIA ULTRA SUAVE C/ABAS P 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.64, pmc: 6.39, venda: 6.39 },
+            { produto: "32 - ABS ALWAYS DIA SECA S/ABAS P 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.64, pmc: 6.39, venda: 6.39 },
+            { produto: "34 - ABS ALWAYS DIA SUAVE S/ABAS P 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.64, pmc: 6.39, venda: 6.39 },
+            { produto: "60 - PROT DIARIO CAREFREE TODO DIA 40UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 10.91, pmc: 19.79, venda: 19.79 },
+            { produto: "62 - PROT DIARIO CAREFREE TODO DIA S/PERF 15UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 5.83, pmc: 10.59, venda: 10.59 },
+            { produto: "64 - PROT DIARIO CAREFREE TODO DIA NEUTRALIZE 15UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 5.83, pmc: 10.59, venda: 10.59 },
+            { produto: "67 - PROT DIARIO CAREFREE ORIGINAL 40UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 10.9, pmc: 19.79, venda: 19.79 },
+            { produto: "82 - ABS GERIATEX SUPER 20UN", grupo: "MELHOR IDADE", secao: "SAUDE E BEM ESTAR", status: "ATIVO", situacao: "Ativo", pf: 13.98, pmc: 22.59, venda: 22.59 },
+            { produto: "87 - ABS INTIMUS DAYS S/AB S/PERF 15UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.89, pmc: 7.39, venda: 7.39 },
+            { produto: "93 - ABS INTIMUS DAYS PROT DIARIO S/AB PERF REG 15UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "SUSPENSO", situacao: "Ativo", pf: 3.89, pmc: 7.39, venda: 7.39 },
+            { produto: "111 - ABS INTIMUS GEL TRIPLA P S/AB SECA 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 4.38, pmc: 7.49, venda: 7.49 },
+            { produto: "113 - ABS INTIMUS GEL NORM S/ABAS SV 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 4.38, pmc: 7.49, venda: 7.49 },
+            { produto: "114 - ABS INTIMUS GEL NOT C/AB SECA 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 6.94, pmc: 10.99, venda: 10.99 },
+            { produto: "115 - ABS INTIMUS C/ABAS NOTURNO SV 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 6.94, pmc: 10.99, venda: 10.99 },
+            { produto: "127 - ABS INTIMUS INTERNO MEDIO 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 8.23, pmc: 14.79, venda: 14.79 },
+            { produto: "130 - ABS INTIMUS INTERNO MINI 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 8.23, pmc: 14.79, venda: 14.79 },
+            { produto: "133 - ABS INTIMUS INTERNO SUPER 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 8.23, pmc: 14.79, venda: 14.79 },
+            { produto: "149 - ABS INTERNO OB PROCONFORT MEDIO 10UN L+P-", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 7.95, pmc: 14.29, venda: 14.29 },
+            { produto: "159 - ABS POS PARTO ULTRA GEL 15UN", grupo: "MELHOR IDADE", secao: "SAUDE E BEM ESTAR", status: "SUSPENSO", situacao: "Ativo", pf: 10.46, pmc: 12.99, venda: 12.99 },
+            { produto: "166 - ABS SEMPRE LIVRE ADAPT PLUS C/ABAS SV 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 4.71, pmc: 7.59, venda: 7.59 },
+            { produto: "168 - ABS SEMPRE LIVRE ADAPT C/ABAS SV 16UN L+P-", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 7.32, pmc: 10.79, venda: 10.79 },
+            { produto: "170 - ABS EXT SEMPRE LIVRE ADAPT C/AB SV 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.89, pmc: 6.59, venda: 6.59 },
+            { produto: "172 - ABS EXT SEMPRE LIVRE ADAPT S/AB SV 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 3.89, pmc: 5.79, venda: 5.79 },
+            { produto: "179 - ABS EXT SEMPRE LIVRE AP N&D C/AB SV 8UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "ATIVO", situacao: "Ativo", pf: 7.42, pmc: 10.99, venda: 10.99 },
+            { produto: "194 - ABS TAMPAX SUPER PLUS 10UN", grupo: "HIGIENE INTIMA", secao: "HIGIENE E CUIDADOS PESSOAIS", status: "SUSPENSO", situacao: "Ativo", pf: 11.81, pmc: 26.89, venda: 26.89 },
+            { produto: "203 - ACCU-CHEK ACTIVE 50TIRAS", grupo: "CUIDADOS PACIENTE", secao: "SAUDE E BEM ESTAR", status: "ATIVO", situacao: "Ativo", pf: 99.9, pmc: 106.59, venda: 106.59 },
+            { produto: "213 - ACCU-CHEK PERFORMA 50TIRAS", grupo: "CUIDADOS PACIENTE", secao: "SAUDE E BEM ESTAR", status: "ATIVO", situacao: "Ativo", pf: 130.9, pmc: 139.49, venda: 139.49 },
+            { produto: "217 - ACCU-CHEK SOFTCLIX 25LANCETS", grupo: "CUIDADOS PACIENTE", secao: "SAUDE E BEM ESTAR", status: "ATIVO", situacao: "Ativo", pf: 25.9, pmc: 27.99, venda: 27.99 }
+        ];
+
+        let chartSecaoInstance = null;
+        let chartStatusInstance = null;
+
+        // Inicializar Filtros Dropdown
+        function popularFiltros() {
+            const grupos = [...new Set(dadosProdutos.map(item => item.grupo))].sort();
+            const secoes = [...new Set(dadosProdutos.map(item => item.secao))].sort();
+
+            const selectGrupo = document.getElementById('filtro-grupo');
+            grupos.forEach(g => {
+                let opt = document.createElement('option');
+                opt.value = g;
+                opt.textContent = g;
+                selectGrupo.appendChild(opt);
+            });
+
+            const selectSecao = document.getElementById('filtro-secao');
+            secoes.forEach(s => {
+                let opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                selectSecao.appendChild(opt);
+            });
+        }
+
+        // Formatar Moeda
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Atualizar Dashboard (Tabela, Cards e Gráficos)
+        function atualizarDashboard() {
+            const termoBusca = document.getElementById('filtro-nome').value.toLowerCase();
+            const grupoFiltro = document.getElementById('filtro-grupo').value;
+            const secaoFiltro = document.getElementById('filtro-secao').value;
+
+            // Filtrar dados
+            const dadosFiltrados = dadosProdutos.filter(item => {
+                const matchNome = item.produto.toLowerCase().includes(termoBusca);
+                const matchGrupo = grupoFiltro === "" || item.grupo === grupoFiltro;
+                const matchSecao = secaoFiltro === "" || item.secao === secaoFiltro;
+                return matchNome && matchGrupo && matchSecao;
+            });
+
+            // Atualizar KPIs
+            const totalProdutos = dadosFiltrados.length;
+            const somaVenda = dadosFiltrados.reduce((acc, item) => acc + item.venda, 0);
+            const somaPmc = dadosFiltrados.reduce((acc, item) => acc + item.pmc, 0);
+            const somaPf = dadosFiltrados.reduce((acc, item) => acc + item.pf, 0);
+
+            document.getElementById('kpi-total').textContent = totalProdutos;
+            document.getElementById('kpi-venda').textContent = totalProdutos ? formatarMoeda(somaVenda / totalProdutos) : formatarMoeda(0);
+            document.getElementById('kpi-pmc').textContent = totalProdutos ? formatarMoeda(somaPmc / totalProdutos) : formatarMoeda(0);
+            document.getElementById('kpi-pf').textContent = totalProdutos ? formatarMoeda(somaPf / totalProdutos) : formatarMoeda(0);
+            document.getElementById('contador-linhas').textContent = `Mostrando ${totalProdutos} registros`;
+
+            // Atualizar Tabela HTML
+            const tbody = document.getElementById('tabela-dados');
+            tbody.innerHTML = '';
+
+            dadosFiltrados.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-gray-900">${item.produto}</td>
+                    <td class="py-3 px-4"><span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">${item.grupo}</span></td>
+                    <td class="py-3 px-4 text-gray-600">${item.secao}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'ATIVO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-right text-gray-600">${formatarMoeda(item.pf)}</td>
+                    <td class="py-3 px-4 text-right text-gray-600">${formatarMoeda(item.pmc)}</td>
+                    <td class="py-3 px-4 text-right font-semibold text-gray-900">${formatarMoeda(item.venda)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Atualizar Gráficos
+            atualizarGraficos(dadosFiltrados);
+        }
+
+        // Configuração e Renderização dos Gráficos com Chart.js
+        function atualizarGraficos(dados) {
+            // Contagem por Seção
+            const contagemSecao = {};
+            dados.forEach(item => {
+                contagemSecao[item.secao] = (contagemSecao[item.secao] || 0) + 1;
+            });
+
+            // Contagem por Status Compra
+            const contagemStatus = {};
+            dados.forEach(item => {
+                contagemStatus[item.status] = (contagemStatus[item.status] || 0) + 1;
+            });
+
+            // Destruir gráficos anteriores para evitar sobreposição
+            if (chartSecaoInstance) chartSecaoInstance.destroy();
+            if (chartStatusInstance) chartStatusInstance.destroy();
+
+            // Renderizar Gráfico de Seção (Barra)
+            const ctxSecao = document.getElementById('chartSecao').getContext('2d');
+            chartSecaoInstance = new Chart(ctxSecao, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(contagemSecao),
+                    datasets: [{
+                        label: 'Qtd de Produtos',
+                        data: Object.values(contagemSecao),
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+
+            // Renderizar Gráfico de Status (Doughnut)
+            const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+            chartStatusInstance = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(contagemStatus),
+                    datasets: [{
+                        data: Object.values(contagemStatus),
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // Eventos de escuta para os filtros
+        document.getElementById('filtro-nome').addEventListener('input', atualizarDashboard);
+        document.getElementById('filtro-grupo').addEventListener('change', atualizarDashboard);
+        document.getElementById('filtro-secao').addEventListener('change', atualizarDashboard);
+
+        // Inicialização ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            popularFiltros();
+            atualizarDashboard();
+        });
+    </script>
+</body>
+</html>
