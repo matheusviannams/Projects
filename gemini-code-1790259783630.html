@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IBM AP-101 // Flight Guidance System</title>
+    <style>
+        /* Estilização Geral - Fundo Preto e Estilo Terminal/Código */
+        body {
+            background-color: #0b0b0b;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #121212;
+            border: 1px solid #00ff66;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+            border-radius: 5px;
+        }
+
+        h2 {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px dashed #00ff66;
+            padding-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ff66;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #00ff66;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+            border-radius: 3px;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 5px #00ff66;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #00ff66;
+            color: #000;
+            border: none;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #00cc52;
+        }
+
+        /* Caixa de Resposta - Textura de Código Puro */
+        .output-box {
+            margin-top: 20px;
+            background: #050505;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap; /* Mantém a formatação de código */
+            color: #33ff99;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 150px;
+        }
+
+        .output-box::before {
+            content: "> SYSTEM_OUTPUT://\A";
+            color: #666;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>IBM AP-101</h2>
+        
+        <div class="form-group">
+            <label for="cityInput">Cidade onde está localizado:</label>
+            <input type="text" id="cityInput" placeholder="Ex: Tokyo, Paris, Rio de Janeiro">
+        </div>
+
+        <button onclick="fetchAstronomyData()">PROCESSING COMMAND</button>
+
+        <div class="output-box" id="output">
+Awaiting system input... Type a city above and execute command.
+        </div>
+    </div>
+
+    <script>
+        function fetchAstronomyData() {
+            const city = document.getElementById('cityInput').value.trim();
+            const outputElement = document.getElementById('output');
+
+            if (!city) {
+                outputElement.textContent = "ERROR: Please enter a valid city name.";
+                return;
+            }
+
+            outputElement.textContent = `Executing telemetry for "${city}"... Please wait.`;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat).toFixed(2);
+                        const lon = parseFloat(data[0].lon).toFixed(2);
+                        const displayName = data[0].display_name;
+
+                        const now = new Date();
+                        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        const localTime = now.toLocaleTimeString('en-US', { timeZone: timeZone });
+                        const localDate = now.toLocaleDateString('en-US', { timeZone: timeZone });
+
+                        const resultText = `LOCATION FOUND: ${displayName}
+----------------------------------------
+LATITUDE:  ${lat}°
+LONGITUDE: ${lon}°
+TIMEZONE:  ${timeZone}
+LOCAL_TIME:${localTime} (${localDate})
+----------------------------------------
+VISIBLE CELESTIAL BODIES (SIMULATION):
+> PLANETS:
+  - Venus   [Azimuth: 145° SE, Altitude: 42°]
+  - Jupiter [Azimuth: 220° SW, Altitude: 65°]
+> MAJOR STARS:
+  - Sirius  [Azimuth: 180° S,  Altitude: 30°]
+  - Vega    [Azimuth: 045° NE, Altitude: 80°]
+----------------------------------------
+STATUS: Coordinate mapping complete.`;
+
+                        outputElement.textContent = resultText;
+                    } else {
+                        outputElement.textContent = `ERROR: City "${city}" not found in database. Try another location.`;
+                    }
+                })
+                .catch(error => {
+                    outputElement.textContent = `CRITICAL_ERROR: Failed to connect to telemetry API.\nDetails: ${error.message}`;
+                });
+        }
+    </script>
+
+</body>
+</html>

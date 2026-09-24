@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta AT 12-03 - NASA Physics Lab</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nasa: {
+                            blue: '#0B3D91',
+                            red: '#FC3D21',
+                            dark: '#050B14',
+                            card: '#0F172A',
+                            border: '#1E293B',
+                            accent: '#38BDF8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050B14;
+            color: #F8FAFC;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050B14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38BDF8;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-nasa-dark text-slate-100 flex flex-col justify-between selection:bg-nasa-red selection:text-white">
+
+    <header class="border-b border-nasa-border bg-nasa-card/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-nasa-blue to-nasa-red flex items-center justify-center shadow-lg shadow-nasa-blue/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-white via-slate-200 to-nasa-accent bg-clip-text text-transparent">DELTA AT 12-03</h1>
+                    <p class="text-xs text-slate-400">Advanced Aerospace Formula Suite</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center space-x-2 text-xs bg-slate-900 border border-nasa-border px-3 py-1.5 rounded-full text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Orbital Systems Online</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        <section class="text-center max-w-3xl mx-auto mb-12">
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">Delta AT 12-03</h2>
+            <p class="text-slate-400 text-sm">Advanced Equations and Real-Time Interactive Calculators</p>
+        </section>
+
+        <div id="formulas-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Formula cards will be dynamically injected via JavaScript -->
+        </div>
+    </main>
+
+    <footer class="border-t border-nasa-border bg-nasa-card/50 mt-16 py-8 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>© 2026 Delta AT 12-03 Physics Lab Simulator. All rights reserved.</p>
+            <div class="flex space-x-4">
+                <span class="text-slate-400 hover:text-nasa-accent cursor-pointer transition">Orbital Mechanics</span>
+                <span class="text-slate-400 hover:text-nasa-accent cursor-pointer transition">Aerodynamics</span>
+                <span class="text-slate-400 hover:text-nasa-accent cursor-pointer transition">Relativity</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const formulasData = [
+            {
+                id: 1,
+                name: "Tsiolkovsky Rocket Equation",
+                category: "Propulsion & Astronautics",
+                equation: "$$\\Delta v = v_e \\cdot \\ln\\left(\\frac{m_0}{m_f}\\right)$$",
+                inputs: [
+                    { id: "ve", label: "Effective Exhaust Velocity (ve) [m/s]", default: 4500, step: 100 },
+                    { id: "m0", label: "Initial Total Mass (m0) [kg]", default: 50000, step: 1000 },
+                    { id: "mf", label: "Final Dry Mass (mf) [kg]", default: 10000, step: 500 }
+                ],
+                calculate: (vals) => {
+                    if (vals.mf <= 0 || vals.m0 <= vals.mf) return "Error: m0 must be greater than mf (>0)";
+                    const dv = vals.ve * Math.log(vals.m0 / vals.mf);
+                    return { value: dv.toFixed(2), unit: "m/s" };
+                }
+            },
+            {
+                id: 2,
+                name: "Vis-Viva Equation",
+                category: "Orbital Mechanics",
+                equation: "$$v = \\sqrt{G M \\left(\\frac{2}{r} - \\frac{1}{a}\\right)}$$",
+                inputs: [
+                    { id: "M", label: "Central Body Mass (M) [kg]", default: 5.972e24, step: 1e22 },
+                    { id: "r", label: "Current Distance (r) [m]", default: 7000000, step: 10000 },
+                    { id: "a", label: "Semimajor Axis (a) [m]", default: 7000000, step: 10000 }
+                ],
+                calculate: (vals) => {
+                    const G = 6.67430e-11;
+                    const term = (2 / vals.r) - (1 / vals.a);
+                    if (term <= 0) return "Error: Hyperbolic or invalid orbit for parameters";
+                    const v = Math.sqrt(G * vals.M * term);
+                    return { value: v.toFixed(2), unit: "m/s" };
+                }
+            },
+            {
+                id: 3,
+                name: "Aerodynamic Drag Equation",
+                category: "Fluid Dynamics & Aerodynamics",
+                equation: "$$F_d = \\frac{1}{2} \\rho \\cdot v^2 \\cdot C_d \\cdot A$$",
+                inputs: [
+                    { id: "rho", label: "Fluid Density (ρ) [kg/m³]", default: 1.225, step: 0.01 },
+                    { id: "v", label: "Vehicle Velocity (v) [m/s]", default: 7800, step: 100 },
+                    { id: "Cd", label: "Drag Coefficient (Cd)", default: 0.8, step: 0.05 },
+                    { id: "A", label: "Reference Area (A) [m²]", default: 15, step: 1 }
+                ],
+                calculate: (vals) => {
+                    const fd = 0.5 * vals.rho * Math.pow(vals.v, 2) * vals.Cd * vals.A;
+                    return { value: fd.toExponential(4), unit: "N (Newtons)" };
+                }
+            },
+            {
+                id: 4,
+                name: "Gravitational Time Dilation",
+                category: "General Relativity & Astrophysics",
+                equation: "$$t_0 = t_f \\sqrt{1 - \\frac{2GM}{r c^2}}$$",
+                inputs: [
+                    { id: "tf", label: "Coordinate Time / Far Observer (tf) [s]", default: 86400, step: 1000 },
+                    { id: "M", label: "Mass of Gravitational Object (M) [kg]", default: 5.972e24, step: 1e22 },
+                    { id: "r", label: "Radial Distance from Center (r) [m]", default: 6371000, step: 1000 }
+                ],
+                calculate: (vals) => {
+                    const G = 6.67430e-11;
+                    const c = 299792458;
+                    const inner = 1 - (2 * G * vals.M) / (vals.r * Math.pow(c, 2));
+                    if (inner <= 0) return "Error: Radius at or inside Schwarzschild radius";
+                    const t0 = vals.tf * Math.sqrt(inner);
+                    return { value: t0.toFixed(4), unit: "s (elapsed proper time)" };
+                }
+            },
+            {
+                id: 5,
+                name: "Newton's Law of Universal Gravitation",
+                category: "Celestial Mechanics",
+                equation: "$$F = \\frac{G \\cdot m_1 \\cdot m_2}{r^2}$$",
+                inputs: [
+                    { id: "m1", label: "Mass of Body 1 (m1) [kg]", default: 5.972e24, step: 1e22 },
+                    { id: "m2", label: "Mass of Body 2 (m2) [kg]", default: 7.342e22, step: 1e20 },
+                    { id: "r", label: "Distance Between Centers (r) [m]", default: 384400000, step: 1000000 }
+                ],
+                calculate: (vals) => {
+                    if (vals.r <= 0) return "Error: Distance must be greater than zero";
+                    const G = 6.67430e-11;
+                    const f = (G * vals.m1 * vals.m2) / Math.pow(vals.r, 2);
+                    return { value: f.toExponential(4), unit: "N (Newtons)" };
+                }
+            },
+            {
+                id: 6,
+                name: "Relativistic Doppler Effect for Light",
+                category: "Astrophysics & Cosmology",
+                equation: "$$z = \\sqrt{\\frac{1 + \\beta}{1 - \\beta}} - 1, \\quad \\beta = \\frac{v}{c}$$",
+                inputs: [
+                    { id: "v", label: "Relative Recession Velocity (v) [m/s]", default: 50000000, step: 1000000 }
+                ],
+                calculate: (vals) => {
+                    const c = 299792458;
+                    if (Math.abs(vals.v) >= c) return "Error: Velocity cannot reach or exceed light speed";
+                    const beta = vals.v / c;
+                    const z = Math.sqrt((1 + beta) / (1 - beta)) - 1;
+                    return { value: z.toFixed(4), unit: "Redshift (z)" };
+                }
+            },
+            {
+                id: 7,
+                name: "Solar Radiation Pressure",
+                category: "Astrodynamics & Solar Sails",
+                equation: "$$P_{rad} = \\frac{L_{\\odot}}{4 \\pi r^2 c} (1 + R_{ref}$$)",
+                inputs: [
+                    { id: "L", label: "Solar Luminosity (L☉) [W]", default: 3.828e26, step: 1e24 },
+                    { id: "r", label: "Distance from Sun (r) [m]", default: 1.496e11, step: 1e9 },
+                    { id: "Rref", label: "Reflection Coefficient (0 to 1)", default: 0.9, step: 0.05 }
+                ],
+                calculate: (vals) => {
+                    if (vals.r <= 0) return "Error: Invalid distance";
+                    const c = 299792458;
+                    const prad = (vals.L / (4 * Math.PI * Math.pow(vals.r, 2) * c)) * (1 + vals.Rref);
+                    return { value: prad.toExponential(4), unit: "N/m² (Pascal)" };
+                }
+            },
+            {
+                id: 8,
+                name: "Adiabatic Mach Number Equation",
+                category: "Supersonic Aerodynamics",
+                equation: "$$M = \\frac{v}{\\sqrt{\\gamma \\cdot R \\cdot T}$$",
+                inputs: [
+                    { id: "v", label: "Object Velocity (v) [m/s]", default: 1000, step: 50 },
+                    { id: "gamma", label: "Ratio of Specific Heats (γ, air ≈ 1.4)", default: 1.4, step: 0.01 },
+                    { id: "R", label: "Specific Gas Constant (R) [J/(kg·K)]", default: 287.05, step: 1 },
+                    { id: "T", label: "Absolute Temperature (T) [K]", default: 288.15, step: 5 }
+                ],
+                calculate: (vals) => {
+                    const soundSpeed = Math.sqrt(vals.gamma * vals.R * vals.T);
+                    const M = vals.v / soundSpeed;
+                    return { value: M.toFixed(2), unit: "Mach (M)" };
+                }
+            },
+            {
+                id: 9,
+                name: "Total Relativistic Energy",
+                category: "High Energy Physics",
+                equation: "$$E = \\sqrt{(p c)^2 + (m_0 c^2)^2}$$",
+                inputs: [
+                    { id: "m0", label: "Rest Mass (m0) [kg]", default: 1e-27, step: 1e-28 },
+                    { id: "p", label: "Relativistic Momentum (p) [kg·m/s]", default: 3e-19, step: 1e-20 }
+                ],
+                calculate: (vals) => {
+                    const c = 299792458;
+                    const pc = vals.p * c;
+                    const m0c2 = vals.m0 * Math.pow(c, 2);
+                    const E = Math.sqrt(Math.pow(pc, 2) + Math.pow(m0c2, 2));
+                    return { value: E.toExponential(4), unit: "J (Joules)" };
+                }
+            },
+            {
+                id: 10,
+                name: "Orbital Period - Kepler's Third Law",
+                category: "Celestial Mechanics",
+                equation: "$$T = 2\\pi \\sqrt{\\frac{a^3}{G (M + m)}$$",
+                inputs: [
+                    { id: "a", label: "Semimajor Axis (a) [m]", default: 42164000, step: 100000 },
+                    { id: "M", label: "Central Mass (M) [kg]", default: 5.972e24, step: 1e22 },
+                    { id: "m", label: "Satellite Mass (m) [kg]", default: 2000, step: 100 }
+                ],
+                calculate: (vals) => {
+                    if (vals.a <= 0) return "Error: Semimajor axis must be positive";
+                    const G = 6.67430e-11;
+                    const T = 2 * Math.PI * Math.sqrt(Math.pow(vals.a, 3) / (G * (vals.M + vals.m)));
+                    const hours = T / 3600;
+                    return { value: `${hours.toFixed(2)} hours (${(T/86400).toFixed(2)} days)`, unit: "Orbital Period" };
+                }
+            }
+        ];
+
+        function renderFormulas() {
+            const container = document.getElementById('formulas-container');
+            container.innerHTML = '';
+
+            formulasData.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "bg-nasa-card border border-nasa-border rounded-2xl p-6 shadow-xl flex flex-col justify-between transition hover:border-nasa-accent/50";
+
+                let inputsHtml = '';
+                item.inputs.forEach(input => {
+                    inputsHtml += `
+                        <div class="space-y-1">
+                            <label class="block text-xs font-medium text-slate-300" for="input-${item.id}-${input.id}">${input.label}</label>
+                            <input type="number" id="input-${item.id}-${input.id}" value="${input.default}" step="${input.step}" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-nasa-accent transition"
+                                oninput="updateCalculation(${item.id})">
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-nasa-accent bg-nasa-blue/30 px-2.5 py-1 rounded-md border border-nasa-blue/50">${item.category}</span>
+                            <span class="text-xs text-slate-500 font-mono">EQ-0${item.id}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-4">${item.name}</h3>
+                        
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 mb-6 text-center font-mono text-nasa-accent text-sm sm:text-base tracking-wider overflow-x-auto">
+                            ${item.equation}
+                        </div>
+
+                        <div class="space-y-3 mb-6">
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1">Input Parameters</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                ${inputsHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Computed Output</span>
+                            <div id="result-${item.id}" class="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono mt-0.5">Calculating...</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+                updateCalculation(item.id);
+            });
+        }
+
+        function updateCalculation(id) {
+            const item = formulasData.find(f => f.id === id);
+            if (!item) return;
+
+            const values = {};
+            item.inputs.forEach(input => {
+                const el = document.getElementById(`input-${id}-${input.id}`);
+                values[input.id] = el ? parseFloat(el.value) || 0 : input.default;
+            });
+
+            const resultContainer = document.getElementById(`result-${id}`);
+            try {
+                const res = item.calculate(values);
+                if (typeof res === 'string') {
+                    resultContainer.className = "text-xs sm:text-sm font-bold text-red-400 font-mono mt-0.5";
+                    resultContainer.innerText = res;
+                } else {
+                    resultContainer.className = "text-lg sm:text-xl font-extrabold text-emerald-400 font-mono mt-0.5";
+                    resultContainer.innerText = `${res.value} ${res.unit}`;
+                }
+            } catch (err) {
+                resultContainer.className = "text-xs sm:text-sm font-bold text-red-400 font-mono mt-0.5";
+                resultContainer.innerText = "Mathematical Calculation Error";
+            }
+        }
+
+        window.onload = function() {
+            renderFormulas();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta AT 12-03 - Advanced Financial Mathematics Lab</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        fin: {
+                            blue: '#0284C7',
+                            emerald: '#10B981',
+                            dark: '#030712',
+                            card: '#0B0F19',
+                            border: '#1F2937',
+                            accent: '#38BDF8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            color: #F8FAFC;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38BDF8;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-fin-dark text-slate-100 flex flex-col justify-between selection:bg-fin-emerald selection:text-white">
+
+    <header class="border-b border-fin-border bg-fin-card/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-fin-blue to-fin-emerald flex items-center justify-center shadow-lg shadow-fin-blue/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-white via-slate-200 to-fin-accent bg-clip-text text-transparent">DELTA AT 12-03</h1>
+                    <p class="text-xs text-slate-400">Advanced Financial Mathematics Suite</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center space-x-2 text-xs bg-slate-900 border border-fin-border px-3 py-1.5 rounded-full text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Financial Markets Online</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        <section class="text-center max-w-3xl mx-auto mb-12">
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">Delta AT 12-03</h2>
+            <p class="text-slate-400 text-sm">Advanced Financial Equations & Real-Time Quantitative Calculators</p>
+        </section>
+
+        <div id="formulas-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Formula cards will be dynamically injected via JavaScript -->
+        </div>
+    </main>
+
+    <footer class="border-t border-fin-border bg-fin-card/50 mt-16 py-8 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>© 2026 Delta AT 12-03 Financial Lab. All rights reserved.</p>
+            <div class="flex space-x-4">
+                <span class="text-slate-400 hover:text-fin-accent cursor-pointer transition">Derivatives Pricing</span>
+                <span class="text-slate-400 hover:text-fin-accent cursor-pointer transition">Portfolio Optimization</span>
+                <span class="text-slate-400 hover:text-fin-accent cursor-pointer transition">Risk Management</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const financialFormulas = [
+            {
+                id: 1,
+                name: "Black-Scholes European Call Option Pricing",
+                category: "Derivatives Pricing",
+                purpose: "Determines the fair theoretical price of European-style stock options based on volatility, strike price, and time to maturity.",
+                equation: "$$C = S_0 N(d_1) - K e^{-rT} N(d_2)$$",
+                inputs: [
+                    { id: "S0", label: "Current Stock Price (S0) [$]", default: 100, step: 1 },
+                    { id: "K", label: "Strike Price (K) [$]", default: 100, step: 1 },
+                    { id: "r", label: "Risk-Free Rate (r) [%]", default: 5, step: 0.1 },
+                    { id: "T", label: "Time to Maturity (T) [Years]", default: 1, step: 0.1 },
+                    { id: "sigma", label: "Volatility (σ) [%]", default: 20, step: 1 }
+                ],
+                calculate: (vals) => {
+                    const S = vals.S0;
+                    const K = vals.K;
+                    const r = vals.r / 100;
+                    const T = vals.T;
+                    const sigma = vals.sigma / 100;
+
+                    if (T <= 0 || sigma <= 0 || S <= 0 || K <= 0) return "Error: Parameters must be greater than zero";
+
+                    const d1 = (Math.log(S / K) + (r + Math.pow(sigma, 2) / 2) * T) / (sigma * Math.sqrt(T));
+                    const d2 = d1 - sigma * Math.sqrt(T);
+
+                    // Standard Normal Cumulative Distribution Function approximation
+                    const normCDF = (x) => {
+                        const t = 1 / (1 + 0.2316419 * Math.abs(x));
+                        const d = 0.3989423 * Math.exp(-Math.pow(x, 2) / 2);
+                        let prob = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+                        if (x > 0) prob = 1 - prob;
+                        return prob;
+                    };
+
+                    const callPrice = S * normCDF(d1) - K * Math.exp(-r * T) * normCDF(d2);
+                    return { value: callPrice.toFixed(4), unit: "$ (Call Option Value)" };
+                }
+            },
+            {
+                id: 2,
+                name: "Capital Asset Pricing Model (CAPM)",
+                category: "Portfolio Theory & Return",
+                purpose: "Calculates the expected rate of return for an asset or portfolio given its systematic risk relative to the overall market.",
+                equation: "$$E(R_i) = R_f + \\beta_i [E(R_m) - R_f]$$",
+                inputs: [
+                    { id: "Rf", label: "Risk-Free Rate (Rf) [%]", default: 3, step: 0.1 },
+                    { id: "beta", label: "Asset Beta (β)", default: 1.2, step: 0.05 },
+                    { id: "Rm", label: "Expected Market Return (E(Rm)) [%]", default: 10, step: 0.1 }
+                ],
+                calculate: (vals) => {
+                    const Rf = vals.Rf;
+                    const beta = vals.beta;
+                    const Rm = vals.Rm;
+                    const er = Rf + beta * (Rm - Rf);
+                    return { value: er.toFixed(2), unit: "% Expected Return" };
+                }
+            },
+            {
+                id: 3,
+                name: "Continuous Compound Interest",
+                category: "Time Value of Money",
+                purpose: "Computes the future value of an investment compounded continuously over time at a constant nominal rate.",
+                equation: "$$A = P \\cdot e^{rt}$$",
+                inputs: [
+                    { id: "P", label: "Principal Amount (P) [$]", default: 10000, step: 500 },
+                    { id: "r", label: "Annual Interest Rate (r) [%]", default: 6, step: 0.1 },
+                    { id: "t", label: "Time Period (t) [Years]", default: 5, step: 0.5 }
+                ],
+                calculate: (vals) => {
+                    const P = vals.P;
+                    const r = vals.r / 100;
+                    const t = vals.t;
+                    if (P < 0 || t < 0) return "Error: Principal and time cannot be negative";
+                    const A = P * Math.exp(r * t);
+                    return { value: A.toFixed(2), unit: "$ (Future Value)" };
+                }
+            },
+            {
+                id: 4,
+                name: "Modified Duration (Bond Price Sensitivity)",
+                category: "Fixed Income & Bonds",
+                purpose: "Measures the percentage price change of a bond for a given change in yield-to-maturity.",
+                equation: "$$D_{mod} = \\frac{D_{mac}}{1 + \\frac{r}{k}}$$",
+                inputs: [
+                    { id: "Dmac", label: "Macaulay Duration (Dmac) [Years]", default: 7.5, step: 0.1 },
+                    { id: "r", label: "Yield-to-Maturity (r) [%]", default: 5, step: 0.1 },
+                    { id: "k", label: "Coupons Per Year (k)", default: 2, step: 1 }
+                ],
+                calculate: (vals) => {
+                    const Dmac = vals.Dmac;
+                    const r = vals.r / 100;
+                    const k = vals.k;
+                    if (k <= 0) return "Error: Coupon frequency must be positive";
+                    const dMod = Dmac / (1 + (r / k));
+                    return { value: dMod.toFixed(4), unit: "Years (Sensitivity)" };
+                }
+            },
+            {
+                id: 5,
+                name: "Gordon Growth Model (Dividend Discount)",
+                category: "Equity Valuation",
+                purpose: "Values a company's stock by assuming constant dividend growth forever into the future.",
+                equation: "$$P_0 = \\frac{D_1}{r - g}$$",
+                inputs: [
+                    { id: "D1", label: "Expected Next Dividend (D1) [$]", default: 3.5, step: 0.1 },
+                    { id: "r", label: "Required Rate of Return (r) [%]", default: 9, step: 0.1 },
+                    { id: "g", label: "Constant Growth Rate (g) [%]", default: 4, step: 0.1 }
+                ],
+                calculate: (vals) => {
+                    const D1 = vals.D1;
+                    const r = vals.r / 100;
+                    const g = vals.g / 100;
+                    if (r <= g) return "Error: Required return (r) must exceed growth rate (g)";
+                    const P0 = D1 / (r - g);
+                    return { value: P0.toFixed(2), unit: "$ (Intrinsic Stock Price)" };
+                }
+            },
+            {
+                id: 6,
+                name: "Sharpe Ratio (Risk-Adjusted Return)",
+                category: "Portfolio Performance",
+                purpose: "Evaluates the excess return per unit of total risk (standard deviation) for an investment or trading strategy.",
+                equation: "$$S = \\frac{R_p - R_f}{\\sigma_p}$$",
+                inputs: [
+                    { id: "Rp", label: "Portfolio Return (Rp) [%]", default: 14, step: 0.5 },
+                    { id: "Rf", label: "Risk-Free Rate (Rf) [%]", default: 3, step: 0.1 },
+                    { id: "sigmap", label: "Portfolio Standard Deviation (σp) [%]", default: 12, step: 0.5 }
+                ],
+                calculate: (vals) => {
+                    const Rp = vals.Rp;
+                    const Rf = vals.Rf;
+                    const sigmap = vals.sigmap;
+                    if (sigmap <= 0) return "Error: Standard deviation must be greater than zero";
+                    const sharpe = (Rp - Rf) / sigmap;
+                    return { value: sharpe.toFixed(4), unit: "Ratio Score" };
+                }
+            },
+            {
+                id: 7,
+                name: "Weighted Average Cost of Capital (WACC)",
+                category: "Corporate Finance",
+                purpose: "Calculates a firm's average cost of capital across all funding sources, weighted proportionally.",
+                equation: "$$WACC = \\left(\\frac{E}{V} \\cdot Re\\right) + \\left(\\frac{D}{V} \\cdot Rd \\cdot (1 - Tc)\\right)$$",
+                inputs: [
+                    { id: "E", label: "Market Value of Equity (E) [$]", default: 600000, step: 10000 },
+                    { id: "D", label: "Market Value of Debt (D) [$]", default: 400000, step: 10000 },
+                    { id: "Re", label: "Cost of Equity (Re) [%]", default: 11, step: 0.1 },
+                    { id: "Rd", label: "Cost of Debt (Rd) [%]", default: 6, step: 0.1 },
+                    { id: "Tc", label: "Corporate Tax Rate (Tc) [%]", default: 25, step: 1 }
+                ],
+                calculate: (vals) => {
+                    const E = vals.E;
+                    const D = vals.D;
+                    const V = E + D;
+                    if (V <= 0) return "Error: Total firm value V must be positive";
+                    const Re = vals.Re / 100;
+                    const Rd = vals.Rd / 100;
+                    const Tc = vals.Tc / 100;
+
+                    const wacc = ((E / V) * Re) + ((D / V) * Rd * (1 - Tc));
+                    return { value: (wacc * 100).toFixed(2), unit: "% WACC" };
+                }
+            },
+            {
+                id: 8,
+                name: "Value at Risk (VaR - Parametric)",
+                category: "Risk Management",
+                purpose: "Estimates the maximum potential loss of a portfolio over a given time horizon at a specified confidence level.",
+                equation: "$$VaR = |z_{\\alpha} \\cdot \\sigma_p - \\mu_p| \\cdot PortfolioValue$$",
+                inputs: [
+                    { id: "val", label: "Portfolio Value [$]", default: 1000000, step: 50000 },
+                    { id: "z", label: "Confidence Z-Score (e.g., 95% = 1.645)", default: 1.645, step: 0.05 },
+                    { id: "sigmap", label: "Daily Volatility (σp) [%]", default: 1.5, step: 0.1 },
+                    { id: "mup", label: "Daily Expected Return (μp) [%]", default: 0.05, step: 0.01 }
+                ],
+                calculate: (vals) => {
+                    const PV = vals.val;
+                    const z = vals.z;
+                    const sigmap = vals.sigmap / 100;
+                    const mup = vals.mup / 100;
+
+                    if (PV <= 0 || sigmap <= 0) return "Error: Invalid portfolio parameters";
+                    const varValue = PV * Math.abs((z * sigmap) - mup);
+                    return { value: varValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }), unit: "Potential Loss" };
+                }
+            },
+            {
+                id: 9,
+                name: "Modigliani-Miller Proposition II (with Taxes)",
+                category: "Corporate Capital Structure",
+                purpose: "Determines the leveraged cost of equity based on business risk, financial leverage, and tax shields.",
+                equation: "$$r_E = r_0 + (r_0 - r_D) \\cdot \\frac{D}{E} \\cdot (1 - T_c)$$",
+                inputs: [
+                    { id: "r0", label: "Unlevered Cost of Equity (r0) [%]", default: 9, step: 0.1 },
+                    { id: "rD", label: "Pre-tax Cost of Debt (rD) [%]", default: 5, step: 0.1 },
+                    { id: "D_E", label: "Debt-to-Equity Ratio (D/E)", default: 0.75, step: 0.05 },
+                    { id: "Tc", label: "Corporate Tax Rate (Tc) [%]", default: 21, step: 1 }
+                ],
+                calculate: (vals) => {
+                    const r0 = vals.r0 / 100;
+                    const rD = vals.rD / 100;
+                    const DE = vals.D_E;
+                    const Tc = vals.Tc / 100;
+
+                    const rE = r0 + (r0 - rD) * DE * (1 - Tc);
+                    return { value: (rE * 100).toFixed(2), unit: "% Levered Cost of Equity" };
+                }
+            },
+            {
+                id: 10,
+                name: "Put-Call Parity",
+                category: "Options Arbitrage & Pricing",
+                purpose: "Establishes the fundamental relationship between the price of a European put option and a European call option with identical strike and maturity.",
+                equation: "$$C + K e^{-rT} = P + S_0$$",
+                inputs: [
+                    { id: "P", label: "Put Option Price (P) [$]", default: 4.5, step: 0.1 },
+                    { id: "S0", label: "Current Stock Price (S0) [$]", default: 100, step: 1 },
+                    { id: "K", label: "Strike Price (K) [$]", default: 100, step: 1 },
+                    { id: "r", label: "Risk-Free Rate (r) [%]", default: 4, step: 0.1 },
+                    { id: "T", label: "Time to Maturity (T) [Years]", default: 1, step: 0.1 }
+                ],
+                calculate: (vals) => {
+                    const P = vals.P;
+                    const S0 = vals.S0;
+                    const K = vals.K;
+                    const r = vals.r / 100;
+                    const T = vals.T;
+
+                    if (T <= 0 || S0 <= 0 || K <= 0) return "Error: Invalid market parameters";
+                    // Implied Call Price from Put-Call Parity: C = P + S0 - K * e^(-rT)
+                    const impliedCall = P + S0 - (K * Math.exp(-r * T));
+                    return { value: impliedCall.toFixed(4), unit: "$ (Implied Call Value)" };
+                }
+            }
+        ];
+
+        function renderFormulas() {
+            const container = document.getElementById('formulas-container');
+            container.innerHTML = '';
+
+            financialFormulas.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "bg-fin-card border border-fin-border rounded-2xl p-6 shadow-xl flex flex-col justify-between transition hover:border-fin-accent/50";
+
+                let inputsHtml = '';
+                item.inputs.forEach(input => {
+                    inputsHtml += `
+                        <div class="space-y-1">
+                            <label class="block text-xs font-medium text-slate-300" for="input-${item.id}-${input.id}">${input.label}</label>
+                            <input type="number" id="input-${item.id}-${input.id}" value="${input.default}" step="${input.step}" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-fin-accent transition"
+                                oninput="updateCalculation(${item.id})">
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-fin-accent bg-fin-blue/30 px-2.5 py-1 rounded-md border border-fin-blue/50">${item.category}</span>
+                            <span class="text-xs text-slate-500 font-mono">FIN-0${item.id}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">${item.name}</h3>
+                        <p class="text-xs text-slate-400 mb-4">${item.purpose}</p>
+                        
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 mb-6 text-center font-mono text-fin-accent text-sm sm:text-base tracking-wider overflow-x-auto">
+                            ${item.equation}
+                        </div>
+
+                        <div class="space-y-3 mb-6">
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1">Input Parameters</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                ${inputsHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Computed Output</span>
+                            <div id="result-${item.id}" class="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono mt-0.5">Calculating...</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+                updateCalculation(item.id);
+            });
+        }
+
+        function updateCalculation(id) {
+            const item = financialFormulas.find(f => f.id === id);
+            if (!item) return;
+
+            const values = {};
+            item.inputs.forEach(input => {
+                const el = document.getElementById(`input-${id}-${input.id}`);
+                values[input.id] = el ? parseFloat(el.value) || 0 : input.default;
+            });
+
+            const resultContainer = document.getElementById(`result-${id}`);
+            try {
+                const res = item.calculate(values);
+                if (typeof res === 'string') {
+                    resultContainer.className = "text-xs sm:text-sm font-bold text-red-400 font-mono mt-0.5";
+                    resultContainer.innerText = res;
+                } else {
+                    resultContainer.className = "text-lg sm:text-xl font-extrabold text-emerald-400 font-mono mt-0.5";
+                    resultContainer.innerText = `${res.value} ${res.unit}`;
+                }
+            } catch (err) {
+                resultContainer.className = "text-xs sm:text-sm font-bold text-red-400 font-mono mt-0.5";
+                resultContainer.innerText = "Mathematical Calculation Error";
+            }
+        }
+
+        window.onload = function() {
+            renderFormulas();
+        };
+    </script>
+</body>
+</html>
