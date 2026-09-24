@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone 18 Retro Terminal OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #030a03;
+            color: #00ff66;
+        }
+
+        /* CRT Scanline & Glow Effects */
+        .crt::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 50;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .crt::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: rgba(0, 255, 100, 0.03);
+            opacity: 0.8;
+            z-index: 40;
+            pointer-events: none;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.95; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0.98; }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.7), 0.0 0 20px rgba(0, 255, 102, 0.4);
+        }
+
+        .glow-border {
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3), inset 0 0 15px rgba(0, 255, 102, 0.2);
+        }
+
+        /* Custom scrollbar for terminal */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020502;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #004411;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00aa33;
+        }
+    </style>
+</head>
+<body class="h-full crt flex flex-col items-center justify-between p-2 md:p-6 overflow-hidden">
+
+    <header class="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between border-b border-[#00ff66]/30 pb-3 mb-3 z-10">
+        <div class="flex items-center space-x-3">
+            <span class="inline-block w-3 h-3 bg-[#00ff66] rounded-full animate-ping"></span>
+            <h1 class="text-xl md:text-2xl font-bold tracking-wider glow-text">APPLE-DOS // iPHONE 18 [REV 2046.2]</h1>
+        </div>
+        <div class="text-xs md:text-sm text-[#00ff66]/70 mt-1 sm:mt-0 flex space-x-4">
+            <span>SYS_TIME: <span id="sys-clock">00:00:00</span></span>
+            <span>CORE: QUANTUM-X</span>
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden mb-3 z-10">
+        
+        <!-- Terminal Output & Input Panel -->
+        <section class="lg:col-span-8 bg-black/80 border border-[#00ff66]/50 rounded-lg p-4 flex flex-col glow-border overflow-hidden">
+            <div class="flex items-center justify-between border-b border-[#00ff66]/20 pb-2 mb-3 text-xs text-[#00ff66]/60">
+                <span>// MAIN CONSOLE LOG</span>
+                <span id="connection-status">STATUS: ONLINE (6G SECURE)</span>
+            </div>
+            
+            <!-- Terminal Output Scroll Area -->
+            <div id="terminal-output" class="flex-1 overflow-y-auto space-y-2 text-sm md:text-base pr-2 mb-3 font-mono">
+                <p class="text-[#00ff66]/90 glow-text">[SYSTEM BOOT] Initializing Apple Quantum OS v18.0...</p>
+                <p class="text-[#00ff66]/90">[CHECK] Neural Link interface calibrated successfully.</p>
+                <p class="text-[#00ff66]/90">[CHECK] Holographic emitter array standing by.</p>
+                <p class="text-[#00ff66]/70">Type <span class="text-white bg-[#00ff66]/20 px-1 rounded">help</span> for a list of available iPhone 18 diagnostic commands or click quick action pads.</p>
+            </div>
+
+            <!-- Terminal Command Input Form -->
+            <form id="terminal-form" class="flex items-center border-t border-[#00ff66]/30 pt-3">
+                <span class="mr-2 text-[#00ff66] glow-text">IP18&gt;</span>
+                <input type="text" id="terminal-input" autocomplete="off" autofocus 
+                    class="flex-1 bg-transparent border-none outline-none text-[#00ff66] font-mono text-sm md:text-base focus:ring-0 placeholder-[#00ff66]/30"
+                    placeholder="Type command here (e.g. holo, quantum, status)...">
+                <button type="submit" class="ml-2 px-3 py-1 bg-[#00ff66]/20 hover:bg-[#00ff66]/40 text-[#00ff66] border border-[#00ff66]/50 rounded text-xs transition">
+                    EXEC
+                </button>
+            </form>
+        </section>
+
+        <!-- Sidebar Quick Action Control Deck -->
+        <aside class="lg:col-span-4 bg-black/80 border border-[#00ff66]/50 rounded-lg p-4 flex flex-col glow-border overflow-y-auto">
+            <h2 class="text-sm font-bold border-b border-[#00ff66]/30 pb-2 mb-3 tracking-wider glow-text">// iPHONE 18 MODULES</h2>
+            
+            <div class="grid grid-cols-1 gap-2 flex-1">
+                <button onclick="runCommand('specs')" class="w-full text-left p-2.5 rounded border border-[#00ff66]/30 hover:bg-[#00ff66]/20 transition flex items-center justify-between group">
+                    <span class="text-xs md:text-sm group-hover:glow-text">&gt; Hardware Specs</span>
+                    <span class="text-[10px] text-[#00ff66]/50">[CMD]</span>
+                </button>
+                <button onclick="runCommand('quantum')" class="w-full text-left p-2.5 rounded border border-[#00ff66]/30 hover:bg-[#00ff66]/20 transition flex items-center justify-between group">
+                    <span class="text-xs md:text-sm group-hover:glow-text">&gt; Quantum Chip Status</span>
+                    <span class="text-[10px] text-[#00ff66]/50">[CPU]</span>
+                </button>
+                <button onclick="runCommand('holo')" class="w-full text-left p-2.5 rounded border border-[#00ff66]/30 hover:bg-[#00ff66]/20 transition flex items-center justify-between group">
+                    <span class="text-xs md:text-sm group-hover:glow-text">&gt; Holographic Display</span>
+                    <span class="text-[10px] text-[#00ff66]/50">[VIS]</span>
+                </button>
+                <button onclick="runCommand('neural')" class="w-full text-left p-2.5 rounded border border-[#00ff66]/30 hover:bg-[#00ff66]/20 transition flex items-center justify-between group">
+                    <span class="text-xs md:text-sm group-hover:glow-text">&gt; Neural Link Test</span>
+                    <span class="text-[10px] text-[#00ff66]/50">[SYN]</span>
+                </button>
+                <button onclick="runCommand('solar')" class="w-full text-left p-2.5 rounded border border-[#00ff66]/20 transition flex items-center justify-between group">
+                    <span class="text-xs md:text-sm group-hover:glow-text">&gt; Solar Fusion Battery</span>
+                    <span class="text-[10px] text-[#00ff66]/50">[PWR]</span>
+                </button>
+                <button onclick="runCommand('ai')" class="w-full text-left p-2.5 rounded border border-[#00ff66]/30 hover:bg-[#00ff66]/20 transition flex items-center justify-between group">
+                    <span class="text-xs md:text-sm group-hover:glow-text">&gt; AI Companion V18</span>
+                    <span class="text-[10px] text-[#00ff66]/50">[SOC]</span>
+                </button>
+                <button onclick="runCommand('clear')" class="w-full text-center py-2 mt-2 rounded border border-red-500/40 text-red-400 hover:bg-red-950/30 transition text-xs">
+                    [ CLEAR SCREEN ]
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between text-xs text-[#00ff66]/50 border-t border-[#00ff66]/20 pt-2 z-10">
+        <div>APPLE INC. // RETRO-FUTURISTIC DIVISION EST. 2046</div>
+        <div>SECURE TERMINAL SESSION ID: #IP18-9942</div>
+    </footer>
+
+    <script>
+        // Real-time clock update
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('sys-clock').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        const terminalOutput = document.getElementById('terminal-output');
+        const terminalForm = document.getElementById('terminal-form');
+        const terminalInput = document.getElementById('terminal-input');
+
+        // Command responses database
+        const commands = {
+            help: `AVAILABLE iPHONE 18 COMMANDS:
+  - specs      : Display technical specifications of iPhone 18
+  - quantum    : Monitor Quantum A19 Bionic Pro chip diagnostics
+  - holo       : Calibrate 3D Holographic projection matrix
+  - neural     : Test direct brain-wave neural interface link
+  - solar      : Check Solar Fusion micro-reactor battery levels
+  - ai         : Communicate with Siri 18.0 Quantum Intelligence
+  - status     : Run complete system diagnostics
+  - clear      : Clear terminal screen
+  - reboot     : Restart iPhone 18 retro terminal firmware`,
+
+            specs: `--- iPHONE 18 TECHNICAL SPECIFICATIONS ---
+• CHIPSET: Apple Quantum A19 Pro (2nm Nanocore, 128 Qubits)
+• DISPLAY: 6.8" Flexible Graphene OLED with 3D Holographic Projector
+• MEMORY: 64 TB Quantum RAM
+• STORAGE: 100 PB (Petabyte) Solid-State Molecular Crystal
+• CONNECTIVITY: Interstellar 6G / Sub-Quantum Entanglement Link
+• CAMERA: 320MP Penta-Lens with Light-Field Depth Capture`,
+
+            quantum: `--- QUANTUM CHIP DIAGNOSTICS ---
+• Qubit Coherence: 99.87% STABLE
+• Processor Temperature: 22.4°C (Sub-Zero Cryo-Loop Active)
+• Entanglement Latency: 0.0001 nanoseconds
+• Quantum Threads: 1,024 Active Threads running smoothly.`,
+
+            holo: `--- HOLOGRAPHIC DISPLAY SYSTEM ---
+• Projector Emitters: 12,000 Micro-LED Nodes active.
+• 3D Resolution: 16K Holographic Volumetric Field.
+• Air-Touch Sensors: Calibrated to finger micro-vibrations.
+• Status: Ready to project desktop in mid-air.`,
+
+            neural: `--- NEURAL LINK INTERFACE ---
+• Brain-Computer Bandwidth: 10 Gbps direct synaptic stream.
+• Synapse Sync: Optimal (No cognitive lag detected).
+• Security: Encrypted via quantum key distribution (QKD).
+• Warning: Avoid intense thoughts about high electricity bills while linked.`,
+
+            solar: `--- SOLAR FUSION BATTERY STATUS ---
+• Core Charge: 98.4% (Indefinite standby via ambient light absorption).
+• Fusion Micro-Cell: Nominal.
+• Estimated Battery Life: 45 Years (Continuous heavy usage).`,
+
+            ai: `SIRI 18.0 QUANTUM COMPANION:
+"Hello user. I have predicted your next 4 questions and optimized your reality timeline accordingly. How may I assist your retro computing session today?"`,
+
+            status: `--- SYSTEM STATUS REPORT ---
+• OS Version: Apple-DOS 18.0.4-Retro
+• Hardware integrity: 100% Optimal
+• Security Protocol: Active (Matrix Shielded)
+• All systems functioning within futuristic parameters.`
+        };
+
+        // Append message to terminal window
+        function appendToTerminal(text, isCommand = false) {
+            const p = document.createElement('p');
+            if (isCommand) {
+                p.className = 'text-[#00ff66] font-bold';
+                p.innerHTML = `<span class="text-white">IP18&gt;</span> ${escapeHtml(text)}`;
+            } else {
+                p.className = 'text-[#00ff66]/90 whitespace-pre-line font-mono pl-4 border-l-2 border-[#00ff66]/40 my-1';
+                p.innerHTML = text;
+            }
+            terminalOutput.appendChild(p);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // Execute command function
+        function runCommand(cmdName) {
+            const cleanCmd = cmdName.trim().toLowerCase();
+            if (!cleanCmd) return;
+
+            appendToTerminal(cleanCmd, true);
+
+            if (cleanCmd === 'clear') {
+                terminalOutput.innerHTML = '';
+                return;
+            }
+
+            if (cleanCmd === 'reboot') {
+                appendToTerminal("Rebooting iPhone 18 firmware...");
+                setTimeout(() => {
+                    terminalOutput.innerHTML = '<p class="text-[#00ff66]">System reboot complete. Welcome back to Apple-DOS iPhone 18.</p>';
+                }, 1000);
+                return;
+            }
+
+            if (commands[cleanCmd]) {
+                // Simulate slight processing delay for retro feel
+                setTimeout(() => {
+                    appendToTerminal(commands[cleanCmd]);
+                }, 150);
+            } else {
+                setTimeout(() => {
+                    appendToTerminal(`Command not recognized: "${escapeHtml(cleanCmd)}". Type <span class="text-white">help</span> for available commands.`);
+                }, 150);
+            }
+        }
+
+        // Handle form submission
+        terminalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const val = terminalInput.value;
+            terminalInput.value = '';
+            runCommand(val);
+        });
+
+        // Focus input when clicking anywhere on the terminal output box
+        terminalOutput.addEventListener('click', () => {
+            terminalInput.focus();
+        });
+    </script>
+</body>
+</html>
