@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Espelho de NF-e Avançado</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; padding: 20px; }
+        .container { max-width: 950px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        fieldset { border: 1px solid #bdc3c7; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        legend { font-weight: bold; color: #2980b9; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        label { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+        input, textarea, select { padding: 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
+        button { background-color: #27ae60; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+        .btn-danger { background-color: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ccc; padding: 6px; font-size: 12px; }
+        th { background: #f8f9fa; }
+        .text-right { text-align: right; }
+        
+        /* Layout DANFE */
+        .danfe-preview { display: none; margin-top: 40px; border: 2px solid #000; padding: 20px; }
+        .danfe-header { display: flex; justify-content: space-between; border-bottom: 1px solid #000; margin-bottom: 10px; padding-bottom: 10px; }
+        .danfe-title { text-align: center; font-weight: bold; font-size: 18px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Configurador de Nota Fiscal</h1>
+    <form id="nfForm">
+        <fieldset>
+            <legend>Dados Operacionais</legend>
+            <div class="form-group">
+                <label>Natureza da Operação (Ex: Venda de Mercadoria):</label>
+                <input type="text" id="natOp" required>
+            </div>
+        </fieldset>
+
+        <div class="form-row">
+            <fieldset style="flex:1"><legend>Emitente</legend>
+                <input type="text" id="eNome" placeholder="Razão Social" style="width:90%"><br><br>
+                <input type="text" id="eCnpj" placeholder="CNPJ">
+                <input type="text" id="eIe" placeholder="IE / IM">
+                <textarea id="eEnd" placeholder="Endereço Completo" style="width:90%; margin-top:5px;"></textarea>
+            </fieldset>
+            <fieldset style="flex:1"><legend>Destinatário</legend>
+                <input type="text" id="dNome" placeholder="Razão Social" style="width:90%"><br><br>
+                <input type="text" id="dCnpj" placeholder="CNPJ / CPF">
+                <input type="text" id="dIe" placeholder="IE / IM">
+                <textarea id="dEnd" placeholder="Endereço Completo" style="width:90%; margin-top:5px;"></textarea>
+            </fieldset>
+        </div>
+
+        <fieldset>
+            <legend>Itens e Tributos</legend>
+            <table id="tabelaItens">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>NCM</th>
+                        <th>Qtd</th>
+                        <th>Vl. Unit</th>
+                        <th>IBS %</th>
+                        <th>CBS %</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="itensBody">
+                    <tr>
+                        <td><input type="text" class="iDesc" style="width:90%"></td>
+                        <td><input type="text" class="iNcm" style="width:60px"></td>
+                        <td><input type="number" class="iQtd" value="1" oninput="calcular()" style="width:50px"></td>
+                        <td><input type="number" class="iVal" value="0" oninput="calcular()" style="width:80px"></td>
+                        <td><input type="number" class="iIbs" value="0" style="width:40px"></td>
+                        <td><input type="number" class="iCbs" value="0" style="width:40px"></td>
+                        <td class="iTotal">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" onclick="addLinha()">+ Item</button>
+        </fieldset>
+
+        <fieldset>
+            <legend>Informações Complementares</legend>
+            <textarea id="infoCompl" style="width:100%; height:80px;"></textarea>
+        </fieldset>
+
+        <button type="button" onclick="gerarDanfe()" style="width:100%; font-size:18px;">Gerar Espelho da Nota</button>
+    </form>
+
+    <div id="danfe" class="danfe-preview">
+        <div class="danfe-title">DANFE SIMULADO - PARA CONSULTA</div>
+        <div class="danfe-header">
+            <div><strong>Natureza:</strong> <span id="rNat"></span></div>
+        </div>
+        <div class="danfe-header">
+            <div><strong>Emitente:</strong> <br><span id="rENome"></span><br>CNPJ: <span id="rECnpj"></span> IE: <span id="rEIe"></span></div>
+            <div><strong>Destinatário:</strong> <br><span id="rDNome"></span><br>CNPJ: <span id="rDCnpj"></span> IE: <span id="rDIe"></span></div>
+        </div>
+        <table id="rTabela">
+            <thead><tr><th>Descrição</th><th>NCM</th><th>Qtd</th><th>Vl Unit</th><th>IBS</th><th>CBS</th><th>Vl Total</th></tr></thead>
+            <tbody id="rBody"></tbody>
+        </table>
+        <div class="text-right" style="font-size:18px; font-weight:bold;">Total Geral: <span id="rTotal"></span></div>
+        <div style="margin-top:20px; font-size:12px; border-top:1px solid #ccc; padding-top:10px;">
+            <strong>Informações Complementares:</strong><br><span id="rInfo"></span>
+        </div>
+        <button onclick="window.print()" style="margin-top:20px;">Imprimir / Salvar PDF</button>
+    </div>
+</div>
+
+<script>
+    function addLinha() {
+        const row = `<tr>
+            <td><input type="text" class="iDesc" style="width:90%"></td>
+            <td><input type="text" class="iNcm" style="width:60px"></td>
+            <td><input type="number" class="iQtd" value="1" oninput="calcular()" style="width:50px"></td>
+            <td><input type="number" class="iVal" value="0" oninput="calcular()" style="width:80px"></td>
+            <td><input type="number" class="iIbs" value="0" style="width:40px"></td>
+            <td><input type="number" class="iCbs" value="0" style="width:40px"></td>
+            <td class="iTotal">0.00</td>
+        </tr>`;
+        document.getElementById('itensBody').insertAdjacentHTML('beforeend', row);
+    }
+
+    function calcular() {
+        let totalGeral = 0;
+        document.querySelectorAll('#itensBody tr').forEach(tr => {
+            const q = parseFloat(tr.querySelector('.iQtd').value) || 0;
+            const v = parseFloat(tr.querySelector('.iVal').value) || 0;
+            const total = q * v;
+            tr.querySelector('.iTotal').innerText = total.toFixed(2);
+            totalGeral += total;
+        });
+        return totalGeral;
+    }
+
+    function gerarDanfe() {
+        document.getElementById('rNat').innerText = document.getElementById('natOp').value;
+        document.getElementById('rENome').innerText = document.getElementById('eNome').value;
+        document.getElementById('rECnpj').innerText = document.getElementById('eCnpj').value;
+        document.getElementById('rEIe').innerText = document.getElementById('eIe').value;
+        document.getElementById('rDNome').innerText = document.getElementById('dNome').value;
+        document.getElementById('rDCnpj').innerText = document.getElementById('dCnpj').value;
+        document.getElementById('rDIe').innerText = document.getElementById('dIe').value;
+        document.getElementById('rInfo').innerText = document.getElementById('infoCompl').value;
+
+        const tbody = document.getElementById('rBody');
+        tbody.innerHTML = '';
+        document.querySelectorAll('#itensBody tr').forEach(tr => {
+            const clone = tr.cloneNode(true);
+            // Remove inputs do espelho e mantém apenas texto
+            clone.querySelectorAll('input').forEach(i => i.outerHTML = i.value);
+            tbody.appendChild(clone);
+        });
+
+        document.getElementById('rTotal').innerText = 'R$ ' + calcular().toFixed(2);
+        document.getElementById('danfe').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

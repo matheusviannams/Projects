@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Precificação Avançada - Supermercado</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f6f7; }
+        .container { background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 650px; margin: auto; }
+        h1 { color: #2c3e50; font-size: 20px; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        label { display: block; margin-top: 12px; font-weight: bold; color: #34495e; font-size: 14px; }
+        select, input { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; }
+        .row { display: flex; gap: 10px; }
+        .col { flex: 1; }
+        button { margin-top: 20px; width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #219150; }
+        .result { margin-top: 20px; padding: 15px; background-color: #ecf0f1; border-left: 5px solid #27ae60; border-radius: 4px; }
+        .result p { margin: 6px 0; font-size: 14px; }
+        .bold { font-weight: bold; }
+        .strategy-info { font-size: 12px; color: #7f8c8d; font-style: italic; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora Avançada de Precificação</h1>
+        
+        <label for="strategy">Estratégia de Precificação:</label>
+        <select id="strategy" onchange="updateInterface()">
+            <option value="markup">1. Baseada em Custos (Markup / Meta de Margem)</option>
+            <option value="percebido">2. Baseada no Valor Percebido</option>
+            <option value="abc">3. Dinâmica / Curva ABC</option>
+            <option value="psicologico">4. Preço Psicológico (Terminação em ,99)</option>
+            <option value="promocao">5. Preço Promocional / Queima</option>
+            <option value="pmc">6. Baseada na Concorrência (PMC)</option>
+        </select>
+        <div id="strategyDesc" class="strategy-info">Foco em cobrir custos operacionais e garantir margem fixa sobre o custo.</div>
+
+        <div class="row">
+            <div class="col">
+                <label for="pf">Preço de Fábrica / Custo Bruto (PF):</label>
+                <input type="number" id="pf" step="0.01" placeholder="Ex: 10.00" oninput="calculate()">
+            </div>
+            <div class="col">
+                <label for="tipoCalculo">Definir por:</label>
+                <select id="tipoCalculo" onchange="calculate()">
+                    <option value="markup">Markup (%)</option>
+                    <option value="margem">Meta de Margem (%)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="icms">ICMS Normal (%):</label>
+                <input type="number" id="icms" step="0.01" value="18.00" oninput="calculate()">
+            </div>
+            <div class="col">
+                <label for="st">ICMS-ST (%):</label>
+                <input type="number" id="st" step="0.01" value="0.00" placeholder="Se > 0, anula ICMS normal" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="pis">PIS (%):</label>
+                <input type="number" id="pis" step="0.01" value="1.65" oninput="calculate()">
+            </div>
+            <div class="col">
+                <label for="cofins">COFINS (%):</label>
+                <input type="number" id="cofins" step="0.01" value="7.60" oninput="calculate()">
+            </div>
+        </div>
+
+        <label id="lblParametro" for="parametroValor">Valor do Markup / Meta / PMC / Desconto:</label>
+        <input type="number" id="parametroValor" step="0.01" value="30.00" placeholder="Ex: 30" oninput="calculate()">
+
+        <button onclick="calculate()">Calcular Precificação</button>
+
+        <div id="res" class="result" style="display:none;">
+            <p>Diferencial da Estratégia: <span id="resDiferencial" class="bold" style="color: #2980b9;"></span></p>
+            <hr style="border:0; border-top:1px solid #bdc3c7; margin:10px 0;">
+            <p>Custo Efetivo do Produto: <span id="resCustoEfetivo" class="bold"></span></p>
+            <p>Detalhamento de Impostos Incidente: <span id="resImpostosDetalhe"></span></p>
+            <p>Preço de Venda Base: <span id="resVendaBase"></span></p>
+            <p>Preço de Venda Ideal / Praticado: <span id="resVenda" class="bold" style="font-size: 16px; color: #27ae60;"></span></p>
+            <p>Margem de Lucro Líquida Real: <span id="resMargem" class="bold"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const descriptions = {
+            markup: "Foco em cobrir custos operacionais e garantir uma margem fixa sobre o custo.",
+            percebido: "Foco no valor agregado (ex: padaria, açougue nobre); margens maiores baseadas no desejo do cliente.",
+            abc: "Ajuste por giro: Curva A (baixo lucro/alto giro para fluxo), Curva C (alto lucro para compensar).",
+            psicologico: "Ajuste de término em ,99 ou ,90 para estimular conversão por estímulo visual.",
+            promocao: "Foco em margem menor ou zero para girar estoque parado ou atrair tráfego.",
+            pmc: "Foco estrito na concorrência; aceita-se a margem resultante para manter competitividade."
+        };
+
+        function updateInterface() {
+            const s = document.getElementById('strategy').value;
+            document.getElementById('strategyDescinnerText' || 'strategyDesc').innerText = descriptions[s];
+            
+            const lbl = document.getElementById('lblParametro');
+            if (s === 'pmc') {
+                lbl.innerText = 'Preço Médio da Concorrência (PMC em R$):';
+            } else if (s === 'promocao') {
+                lbl.innerText = 'Percentual de Desconto Promocional (%):';
+            } else if (s === 'psicologico') {
+                lbl.innerText = 'Markup Base para arredondamento psicológico (%):';
+            } else {
+                lbl.innerText = 'Valor do Parâmetro (Markup / Margem / Alvo):';
+            }
+            calculate();
+        }
+
+        function calculate() {
+            const s = document.getElementById('strategy').value;
+            const pf = parseFloat(document.getElementById('pf').value) || 0;
+            const tipoCalc = document.getElementById('tipoCalculo').value;
+            const icms = parseFloat(document.getElementById('icms').value) || 0;
+            const st = parseFloat(document.getElementById('st').value) || 0;
+            const pis = parseFloat(document.getElementById('pis').value) || 0;
+            const cofins = parseFloat(document.getElementById('cofins').value) || 0;
+            const param = parseFloat(document.getElementById('parametroValor').value) || 0;
+
+            // Tratamento de impostos (Se houver ST, não considera o ICMS normal)
+            let impostoAplicado = 0;
+            let descImposto = "";
+            if (st > 0) {
+                impostoAplicado = st + pis + cofins;
+                descImposto = `ICMS-ST (${st}%) + PIS (${pis}%) + COFINS (${cofins}%) = ${impostoAplicado.toFixed(2)}% (ICMS normal ignorado)`;
+            } else {
+                impostoAplicado = icms + pis + cofins;
+                descImposto = `ICMS Normal (${icms}%) + PIS (${pis}%) + COFINS (${cofins}%) = ${impostoAplicado.toFixed(2)}%`;
+            }
+
+            let custoEfetivo = pf; // Custo base puro de aquisição
+
+            let pv = 0;
+            let margemReal = 0;
+            let diferencialTexto = "";
+
+            if (s === 'markup') {
+                diferencialTexto = "Baseado estritamente em custos operacionais e margem desejada.";
+                if (tipoCalc === 'markup') {
+                    pv = pf * (1 + (param / 100));
+                    margemReal = param;
+                } else {
+                    // Meta de Margem sobre o preço de venda: PV = Custo / (1 - Margem%)
+                    pv = pf / (1 - (param / 100));
+                    margemReal = param;
+                }
+            } else if (s === 'percebido') {
+                diferencialTexto = "Valor agregado alto; aplica-se sobrepreço baseado na percepção de qualidade do cliente.";
+                // Usa lógica de markup ampliado ou margem alta
+                let m = tipoCalc === 'markup' ? param : (param > 0 ? param : 50);
+                pv = pf * (1 + (m / 100));
+                margemReal = tipoCalc === 'markup' ? m : param;
+            } else if (s === 'abc') {
+                diferencialTexto = "Curva ABC: Se for item Curva A (baixo markup p/ giro), use parâmetro menor; se Curva C, use markup alto.";
+                pv = pf * (1 + (param / 100));
+                margemReal = param;
+            } else if (s === 'psicologico') {
+                diferencialTexto = "Preço calculado e ajustado automaticamente para terminar em ,99 (gatilho mental).";
+                let pvBruto = pf * (1 + (param / 100));
+                // Arredonda para o ,99 mais próximo abaixo ou acima
+                pv = Math.floor(pvBruto) + 0.99;
+                if (pv <= pf) pv = Math.ceil(pvBruto) + 0.99;
+                margemReal = ((pv - pf) / pf) * 100;
+            } else if (s === 'promocao') {
+                diferencialTexto = "Preço com desconto agressivo para queima de estoque ou atração de fluxo (margem sacrificada).";
+                let pvPadrao = pf * 1.30; // Base padrão de 30%
+                let desconto = param;
+                pv = pvPadrao * (1 - (desconto / 100));
+                margemReal = ((pv - pf) / pv) * 100;
+            } else if (s === 'pmc') {
+                diferencialTexto = "Precificação defensiva guiada pelo Preço Médio da Concorrência (PMC).";
+                pv = param; // O parâmetro aqui assume o valor do PMC inserido
+                margemReal = pv > 0 ? ((pv - pf) / pv) * 100 : 0;
+            }
+
+            document.getElementById('resDiferencial').innerText = diferencialTexto;
+            document.getElementById('resCustoEfetivo').innerText = 'R$ ' + custoEfetivo.toFixed(2);
+            document.getElementById('resImpostosDetalhe').innerText = descImposto;
+            document.getElementById('resVendaBase').innerText = 'R$ ' + (pf * 1.1).toFixed(2) + ' (Estimado mínimo s/ despesas)';
+            document.getElementById('resVenda').innerText = 'R$ ' + (isNaN(pv) ? '0.00' : pv.toFixed(2));
+            document.getElementById('resMargem').innerText = (isNaN(margemReal) ? '0.00' : margemReal.toFixed(2)) + '%';
+            document.getElementById('res').style.display = 'block';
+        }
+        
+        // Inicializa descrição correta
+        document.getElementById('strategyDesc').innerText = descriptions['markup'];
+    </script>
+</body>
+</html>

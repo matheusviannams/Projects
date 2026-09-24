@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Matriz x Margem - Importação Excel</title>
+    <!-- Importando a biblioteca SheetJS para leitura de arquivos Excel (.xlsx, .xls, .csv) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f1f2f6; color: #2f3640; }
+        .container { background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); max-width: 1100px; margin: auto; }
+        h1 { color: #273c75; font-size: 22px; text-align: center; border-bottom: 2px solid #487eb0; padding-bottom: 10px; }
+        .upload-box { border: 2px dashed #487eb0; padding: 25px; text-align: center; border-radius: 6px; background-color: #f5f6fa; margin-bottom: 20px; }
+        input[type="file"] { margin-top: 10px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #dcdde1; padding: 8px 10px; text-align: left; }
+        th { background-color: #487eb0; color: white; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .badge-danger { background-color: #e84118; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
+        .badge-success { background-color: #4cd137; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
+        .metrics-grid { display: flex; gap: 15px; margin-bottom: 20px; }
+        .metric-card { flex: 1; background: #f5f6fa; padding: 15px; border-radius: 6px; border-left: 4px solid #487eb0; text-align: center; }
+        .metric-card h3 { margin: 0; font-size: 14px; color: #7f8c8d; }
+        .metric-card p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: #2f3640; }
+        .instructions { font-size: 12px; color: #555; margin-top: 8px; text-align: left; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Matriz x Margem</h1>
+        
+        <div class="upload-box">
+            <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 15px;">Carregue sua Planilha do Excel (.xlsx ou .csv):</p>
+            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="lerPlanilha(event)">
+            <br>
+            <div class="instructions">
+                <b>Dica de Estrutura para sua Planilha:</b> A primeira linha deve conter os cabeçalhos.<br>
+                Ordem esperada das colunas: <i>[Produto / Peça] | [Curva/Criticidade] | [Custo PF] | [Tributos %] | [Preço Venda]</i>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total de SKUs / Projetos</h3>
+                <p id="totalSkus">0</p>
+            </div>
+            <div class="metric-card">
+                <h3>Margem Média Geral</h3>
+                <p id="mediaMargem">0.00%</p>
+            </div>
+            <div class="metric-card">
+                <h3>SKUs com Alerta de Prejuízo</h3>
+                <p id="totalAlertas" style="color: #e84118;">0</p>
+            </div>
+        </div>
+
+        <h3>Matriz Auditoria</h3>
+        <div style="overflow-x: auto;">
+            <table id="tabelaResultados">
+                <thead>
+                    <tr>
+                        <th>Código / Sistema Refratário & Fluxo</th>
+                        <th>Criticidade</th>
+                        <th>Custo de Fabricação (PF)</th>
+                        <th>Carga Tributária (%)</th>
+                        <th>Preço Contratual Venda</th>
+                        <th>Margem Real (%)</th>
+                        <th>Status / Ação Recomendada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="7" style="text-align: center; color: #7f8c8d;">Aguardando o upload da planilha...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function lerPlanilha(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Pega a primeira aba da planilha
+                const primeiraAbaNome = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[primeiraAbaNome];
+
+                // Converte a aba do Excel em um formato JSON (linhas como objetos)
+                const jsonDados = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                processarDadosPlanilha(jsonDados);
+            };
+            reader.readAsArrayBuffer(arquivo);
+        }
+
+        function processarDadosPlanilha(linhas) {
+            let tbody = document.querySelector("#tabelaResultados tbody");
+            tbody.innerHTML = "";
+
+            // Ignora o cabeçalho (linha 0) e começa a varredura da linha 1 em diante
+            let dadosProcessados = [];
+            let somaMargem = 0;
+            let qtdAlertas = 0;
+
+            for (let i = 1; i < linhas.length; i++) {
+                let col = linhas[i];
+                if (!col || col.length < 5) continue; // Pula linhas vazias
+
+                let nome = col[0] || "Item sem nome";
+                let curva = col[1] || "B";
+                let pf = parseFloat(col[2]) || 0;
+                let tributos = parseFloat(col[3]) || 0;
+                let pv = parseFloat(col[4]) || 0;
+
+                // Motor analítico de cálculo de margem real
+                let custoEfetivo = pf * (1 + (tributos / 100));
+                let margemReal = pv > 0 ? ((pv - custoEfetivo) / pv) * 100 : 0;
+                somaMargem += margemReal;
+
+                let statusHtml = "";
+                if (margemReal < 12) {
+                    qtdAlertas++;
+                    statusHtml = `<span class="badge-danger">Margem Crítica (< 12%)</span>`;
+                } else {
+                    statusHtml = `<span class="badge-success">Saudável</span>`;
+                }
+
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><b>${nome}</b></td>
+                    <td>${curva}</td>
+                    <td>R$ ${pf.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td>${tributos.toFixed(2)}%</td>
+                    <td>R$ ${pv.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td><b>${margemReal.toFixed(2)}%</b></td>
+                    <td>${statusHtml}</td>
+                `;
+                tbody.appendChild(tr);
+                dadosProcessados.push(margemReal);
+            }
+
+            if (dadosProcessados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #e84118;">Nenhum dado válido encontrado. Verifique se as colunas estão na ordem correta.</td></tr>`;
+                return;
+            }
+
+            // Atualiza o painel com as métricas globais da planilha
+            document.getElementById("totalSkus").innerText = dadosProcessados.length;
+            document.getElementById("mediaMargem").innerText = (somaMargem / dadosProcessados.length).toFixed(2) + "%";
+            document.getElementById("totalAlertas").innerText = qtdAlertas;
+        }
+    </script>
+</body>
+</html>

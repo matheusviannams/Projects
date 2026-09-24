@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Emissor de Recibo de Viagem / Bilhete de Passagem</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 20px; color: #333; }
+        .container { max-width: 950px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        fieldset { border: 1px solid #cbd5e1; padding: 15px; margin-bottom: 20px; border-radius: 6px; }
+        legend { font-weight: bold; color: #1e40af; padding: 0 5px; }
+        .form-row { display: flex; gap: 15px; margin-bottom: 10px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        label { font-size: 11px; font-weight: bold; margin-bottom: 3px; }
+        input, select, textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+        button { background-color: #2563eb; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button:hover { background-color: #1d4ed8; }
+        .btn-danger { background-color: #dc2626; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px; font-size: 12px; text-align: center; }
+        th { background: #f8fafc; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        
+        /* Layout do Recibo Impresso / Espelho */
+        .recibo-preview { display: none; margin-top: 40px; border: 2px dashed #1e293b; padding: 25px; background: #fff; }
+        .recibo-header { display: flex; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 15px; }
+        .recibo-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #1e293b; text-transform: uppercase; }
+        
+        @media print {
+            body { background: none; padding: 0; }
+            .container > *:not(#reciboPreview), form { display: none; }
+            .recibo-preview { display: block !important; border: none; margin: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Emissor de Recibo de Viagem / Bilhete</h1>
+    <p style="text-align: center; font-size: 13px; color: #64748b;">Preencha os dados da empresa, trajeto e passageiros para emitir o comprovante.</p>
+
+    <form id="reciboForm">
+        <!-- Empresa Transportadora -->
+        <fieldset>
+            <legend>Empresa Responsável pelo Transporte</legend>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label>Razão Social / Nome da Empresa:</label>
+                    <input type="text" id="empNome" placeholder="Ex: Viação Expresso Ltda" required>
+                </div>
+                <div class="form-group">
+                    <label>CNPJ:</label>
+                    <input type="text" id="empCnpj" placeholder="00.000.000/0001-00" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Modal de Transporte:</label>
+                    <select id="modalTransporte">
+                        <option value="Rodoviário (Ônibus/Carro)">Rodoviário (Ônibus/Carro)</option>
+                        <option value="Barco / Hidroviário">Barco / Hidroviário</option>
+                        <option value="Van / Utilitário">Van / Utilitário</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Trajeto -->
+        <fieldset>
+            <legend>Informações da Rota / Trajeto</legend>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Endereço de Origem (Embarque):</label>
+                    <input type="text" id="endOrigem" placeholder="Ex: Rodoviária Central - Rua A, 100, São Paulo - SP" required>
+                </div>
+                <div class="form-group">
+                    <label>Endereço de Destino (Desembarque):</label>
+                    <input type="text" id="endDestino" placeholder="Ex: Terminal Portuário - Av. Beira Mar, 500, Paraty - RJ" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data e Horário da Viagem:</label>
+                    <input type="datetime-local" id="dataViagem" required>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Passageiros e Valores -->
+        <fieldset>
+            <legend>Relação de Passageiros e Custos</legend>
+            <div style="overflow-x: auto;">
+                <table id="tabelaPassageiros">
+                    <thead>
+                        <tr>
+                            <th>Nome do Passageiro</th>
+                            <th>CPF</th>
+                            <th>Valor Viagem (R$)</th>
+                            <th>Seguro (R$)</th>
+                            <th>Taxa (R$)</th>
+                            <th>Total Linha</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="passageirosBody">
+                        <tr>
+                            <td><input type="text" class="pNome" style="width: 160px;" required></td>
+                            <td><input type="text" class="pCpf" placeholder="000.000.000-00" style="width: 110px;" required></td>
+                            <td><input type="number" class="pValor" value="100.00" min="0" step="0.01" oninput="calcularRecibo()" style="width: 75px;" required></td>
+                            <td><input type="number" class="pSeguro" value="5.00" min="0" step="0.01" oninput="calcularRecibo()" style="width: 60px;" required></td>
+                            <td><input type="number" class="pTaxa" value="3.00" min="0" step="0.01" oninput="calcularRecibo()" style="width: 60px;" required></td>
+                            <td class="pTotalLinha">R$ 108,00</td>
+                            <td><button type="button" class="btn-danger" onclick="removerPassageiro(this)">X</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <br>
+            <button type="button" onclick="adicionarPassageiro()">+ Adicionar Passageiro</button>
+        </fieldset>
+
+        <div style="text-align: center;">
+            <button type="button" onclick="gerarReciboPreview()" style="padding: 12px 30px; font-size: 15px;">Gerar Recibo de Viagem</button>
+        </div>
+    </form>
+
+    <!-- Visualização do Recibo / Bilhete -->
+    <div id="reciboPreview" class="recibo-preview">
+        <div class="recibo-title">Comprovante / Recibo de Passagem de Viagem</div>
+        
+        <div class="recibo-header">
+            <div>
+                <strong>EMPRESA:</strong> <span id="rEmpNome"></span><br>
+                <strong>CNPJ:</strong> <span id="rEmpCnpj"></span><br>
+                <strong>Modalidade:</strong> <span id="rModal"></span>
+            </div>
+            <div style="text-align: right;">
+                <strong>Data de Emissão:</strong> <span id="rDataEmissao"></span><br>
+                <strong>Data/Hora da Viagem:</strong> <span id="rDataViagem"></span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 12px; font-size: 12px; background: #f8fafc; padding: 10px; border: 1px solid #cbd5e1;">
+            <div><strong>Origem:</strong> <span id="rOrigem"></span></div>
+            <div style="margin-top: 5px;"><strong>Destino:</strong> <span id="rDestino"></span></div>
+        </div>
+
+        <div style="font-weight: bold; font-size: 12px; margin-bottom: 5px;">PASSAGEIROS E COMPOSIÇÃO DE VALORES</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Passageiro</th>
+                    <th>CPF</th>
+                    <th class="text-right">Vl. Viagem</th>
+                    <th class="text-right">Seguro</th>
+                    <th class="text-right">Taxa</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody id="rPassageirosBody"></tbody>
+        </table>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 15px; font-size: 15px; background: #f1f5f9; padding: 10px; border: 1px solid #cbd5e1;">
+            <div style="text-align: right; font-weight: bold;">
+                VALOR TOTAL DO RECIBO: <span id="rValorTotalGeral" style="color: #1e40af;">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 25px;">
+            <button onclick="window.print()">Imprimir / Salvar PDF</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function adicionarPassageiro() {
+        const tbody = document.getElementById('passageirosBody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="pNome" style="width: 160px;" required></td>
+            <td><input type="text" class="pCpf" placeholder="000.000.000-00" style="width: 110px;" required></td>
+            <td><input type="number" class="pValor" value="100.00" min="0" step="0.01" oninput="calcularRecibo()" style="width: 75px;" required></td>
+            <td><input type="number" class="pSeguro" value="5.00" min="0" step="0.01" oninput="calcularRecibo()" style="width: 60px;" required></td>
+            <td><input type="number" class="pTaxa" value="3.00" min="0" step="0.01" oninput="calcularRecibo()" style="width: 60px;" required></td>
+            <td class="pTotalLinha">R$ 108,00</td>
+            <td><button type="button" class="btn-danger" onclick="removerPassageiro(this)">X</button></td>
+        `;
+        tbody.appendChild(tr);
+        calcularRecibo();
+    }
+
+    function removerPassageiro(btn) {
+        const row = btn.closest('tr');
+        if (document.querySelectorAll('#passageirosBody tr').length > 1) {
+            row.remove();
+            calcularRecibo();
+        } else {
+            alert("O recibo precisa conter pelo menos um passageiro.");
+        }
+    }
+
+    function calcularRecibo() {
+        let totalGeral = 0;
+        document.querySelectorAll('#passageirosBody tr').forEach(tr => {
+            const valor = parseFloat(tr.querySelector('.pValor').value) || 0;
+            const seguro = parseFloat(tr.querySelector('.pSeguro').value) || 0;
+            const taxa = parseFloat(tr.querySelector('.pTaxa').value) || 0;
+            
+            const totalLinha = valor + seguro + taxa;
+            tr.querySelector('.pTotalLinha').innerText = `R$ ${totalLinha.toFixed(2)}`;
+            totalGeral += totalLinha;
+        });
+        return totalGeral;
+    }
+
+    function gerarReciboPreview() {
+        // Validação simples dos campos principais
+        if (!document.getElementById('empNome').value || !document.getElementById('empCnpj').value) {
+            alert("Por favor, preencha os dados da empresa transportadora.");
+            return;
+        }
+
+        // Popular dados do cabeçalho
+        document.getElementById('rEmpNome').innerText = document.getElementById('empNome').value;
+        document.getElementById('rEmpCnpj').innerText = document.getElementById('empCnpj').value;
+        document.getElementById('rModal').innerText = document.getElementById('modalTransporte').value;
+        
+        const agora = new Date();
+        document.getElementById('rDataEmissao').innerText = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        
+        const dataV = document.getElementById('dataViagem').value;
+        document.getElementById('rDataViagem').innerText = dataV ? new Date(dataV).toLocaleString('pt-BR') : 'Não informada';
+
+        document.getElementById('rOrigem').innerText = document.getElementById('endOrigem').value;
+        document.getElementById('rDestino').innerText = document.getElementById('endDestino').value;
+
+        // Montar tabela de passageiros no preview
+        const rBody = document.getElementById('rPassageirosBody');
+        rBody.innerHTML = '';
+
+        document.querySelectorAll('#passageirosBody tr').forEach(tr => {
+            const nome = tr.querySelector('.pNome').value || '-';
+            const cpf = tr.querySelector('.pCpf').value || '-';
+            const valor = parseFloat(tr.querySelector('.pValor').value) || 0;
+            const seguro = parseFloat(tr.querySelector('.pSeguro').value) || 0;
+            const taxa = parseFloat(tr.querySelector('.pTaxa').value) || 0;
+            const totalLinha = valor + seguro + taxa;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="text-left">${nome}</td>
+                <td>${cpf}</td>
+                <td class="text-right">R$ ${valor.toFixed(2)}</td>
+                <td class="text-right">R$ ${seguro.toFixed(2)}</td>
+                <td class="text-right">R$ ${taxa.toFixed(2)}</td>
+                <td class="text-right" style="font-weight: bold;">R$ ${totalLinha.toFixed(2)}</td>
+            `;
+            rBody.appendChild(row);
+        });
+
+        document.getElementById('rValorTotalGeral').innerText = `R$ ${calcularRecibo().toFixed(2)}`;
+
+        // Exibir a pré-visualização
+        const preview = document.getElementById('reciboPreview');
+        preview.style.display = 'block';
+        preview.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>

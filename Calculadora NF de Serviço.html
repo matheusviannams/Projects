@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Impostos - Nota Fiscal de Serviço</title>
+    <style>
+        :root {
+            --primary-color: #2d5a27;
+            --primary-hover: #23471f;
+            --bg-color: #f4f7f4;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ccc;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary-color); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; background-color: var(--primary-color); color: white; border: none; padding: 12px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        button:hover { background-color: var(--primary-hover); }
+        .result-box { margin-top: 25px; padding: 20px; background-color: #e8f5e9; border-radius: 4px; border: 1px solid #c8e6c9; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .total { font-weight: bold; border-top: 1px solid #aaa; padding-top: 10px; margin-top: 10px; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Calculadora NF de Serviço</h2>
+    <form id="serviceForm">
+        <!-- Pergunta Simples Nacional -->
+        <div class="form-group">
+            <label for="simplesNacional">Fornecedor é do Simples Nacional?</label>
+            <select id="simplesNacional">
+                <option value="nao">Não (Lucro Presumido / Real)</option>
+                <option value="sim">Sim</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="valorServico">Valor Bruto do Serviço (R$):</label>
+            <input type="number" id="valorServico" step="0.01" required placeholder="0,00">
+        </div>
+
+        <div class="form-group">
+            <label for="tipoServico">Tipo de Serviço:</label>
+            <select id="tipoServico">
+                <option value="software">Desenvolvimento de Software</option>
+                <option value="consultoria">Consultoria Técnica</option>
+                <option value="limpeza">Limpeza e Conservação</option>
+                <option value="seguranca">Segurança e Vigilância</option>
+                <option value="manutencao">Manutenção Predial</option>
+                <option value="publicidade">Publicidade e Propaganda</option>
+                <option value="treinamento">Treinamento e Ensino</option>
+                <option value="advocacia">Serviços Jurídicos</option>
+                <option value="contabilidade">Contabilidade</option>
+                <option value="transporte">Transporte de Cargas</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="aliqISS">Alíquota ISS (%):</label>
+            <input type="number" id="aliqISS" step="0.01" value="5.00">
+        </div>
+
+        <button type="button" onclick="calcular()">Calcular Impostos</button>
+    </form>
+
+    <div id="res" style="display:none;" class="result-box">
+        <h3>Resumo dos Valores</h3>
+        <div class="result-item"><span>Valor Bruto:</span> <span id="rBruto"></span></div>
+        <div class="result-item"><span>IRRF:</span> <span id="rIRRF"></span></div>
+        <div class="result-item"><span>PCC (PIS/COFINS/CSLL):</span> <span id="rPCC"></span></div>
+        <div class="result-item"><span>INSS:</span> <span id="rINSS"></span></div>
+        <div class="result-item"><span>ISS:</span> <span id="rISS"></span></div>
+        <div class="result-item total"><span>Valor Líquido:</span> <span id="rLiquido"></span></div>
+    </div>
+</div>
+
+<script>
+function calcular() {
+    const isSimples = document.getElementById('simplesNacional').value === 'sim';
+    const valor = parseFloat(document.getElementById('valorServico').value) || 0;
+    const servico = document.getElementById('tipoServico').value;
+    const aliqISS = parseFloat(document.getElementById('aliqISS').value) / 100;
+    
+    let irrf = 0, pcc = 0, inss = 0, iss = 0;
+
+    // Se não for do Simples Nacional, aplica as regras de retenção
+    if (!isSimples) {
+        if (['limpeza', 'seguranca', 'manutencao'].includes(servico)) {
+            irrf = valor * 0.01;
+            pcc = valor * 0.0465;
+            inss = valor * 0.11;
+        } else if (['consultoria', 'advocacia', 'contabilidade', 'publicidade'].includes(servico)) {
+            irrf = valor * 0.015;
+            pcc = valor * 0.0465;
+        }
+        iss = valor * aliqISS;
+    }
+
+    const totalImpostos = irrf + pcc + inss + iss;
+    const liquido = valor - totalImpostos;
+
+    // Exibição dos resultados
+    document.getElementById('rBruto').innerText = valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('rIRRF').innerText = irrf.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('rPCC').innerText = pcc.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('rINSS').innerText = inss.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('rISS').innerText = iss.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('rLiquido').innerText = liquido.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('res').style.display = 'block';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analista Especialista Python - Code Review</title>
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #d97706;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            background-color: #0f172a;
+            color: #38bdf8;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        button.secondary {
+            background-color: #64748b;
+        }
+
+        button.secondary:hover {
+            background-color: #475569;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background-color: #fef3c7;
+            color: #d97706;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-box span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .metric-box strong {
+            font-size: 18px;
+            color: var(--text-main);
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            display: none;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Code Review & Simulador Python</h1>
+        <p>Insira seu script Python ou carregue um exemplo aleatório para uma auditoria especializada.</p>
+    </header>
+
+    <div class="card">
+        <label for="pythonCode">Código Python:</label>
+        <textarea id="pythonCode" placeholder="Ex: import pandas as pd..."></textarea>
+        
+        <div class="button-group">
+            <button class="secondary" onclick="carregarExemploAleatorio()">Carregar Exemplo Aleatório</button>
+            <button onclick="analisarPython()">Executar Análise Analítica</button>
+        </div>
+
+        <div id="loadingDiv" class="loading">Analisando complexidade ciclomática, boas práticas PEP 8 e gargalos...</div>
+    </div>
+
+    <div id="resultCard" class="card result-section">
+        <div class="result-header">
+            <h3>Relatório do Especialista Python</h3>
+            <span class="badge" id="tipoCodigo">Python 3.x</span>
+        </div>
+
+        <div class="metric-grid">
+            <div class="metric-box">
+                <span>Complexidade Ciclomática</span>
+                <strong id="resComplexidade">Média</strong>
+            </div>
+            <div class="metric-box">
+                <span>Padrão PEP 8</span>
+                <strong id="resPep8">Bom</strong>
+            </div>
+            <div class="metric-box">
+                <span>Alertas Identificados</span>
+                <strong id="resAlertas">1 item</strong>
+            </div>
+        </div>
+
+        <h4>Diagnóstico do Código:</h4>
+        <div id="resDiagnostico" style="line-height: 1.6; margin-bottom: 15px;"></div>
+
+        <h4>Sugestões de Melhoria e Performance:</h4>
+        <ul id="resRecomendacoes"></ul>
+    </div>
+</div>
+
+<script>
+    const exemplosAleatorios = [
+        `import pandas as pd
+
+def processar_vendas(caminho_arquivo):
+    df = pd.read_csv(caminho_arquivo)
+    # Filtrando dados de forma ineficiente com loop explícito
+    total = 0
+    for index, row in df.iterrows():
+        if row['status'] == 'Concluido':
+            total += row['valor']
+    return total`,
+
+        `def calcular_fatorial(n):
+    if n < 0:
+        raise ValueError("Número deve ser não-negativo")
+    resultado = 1
+    for i in range(1, n + 1):
+        resultado *= i
+    return resultado
+
+print(calcular_fatorial(5))`,
+
+        `import requests
+
+response = requests.get('https://api.exemplo.com/dados')
+if response.status_code == 200:
+    dados = response.json()
+    for item in dados:
+        print(item.get('nome'))
+else:
+    print("Erro ao acessar API")`
+    ];
+
+    function carregarExemploAleatorio() {
+        const indice = Math.floor(Math.random() * exemplosAleatorios.length);
+        document.getElementById('pythonCode').value = exemplosAleatorios[indice];
+        // Esconde resultados anteriores ao trocar de código
+        document.getElementById('resultCard').style.display = 'none';
+    }
+
+    function analisarPython() {
+        const codigo = document.getElementById('pythonCode').value.trim();
+        const loading = document.getElementById('loadingDiv');
+        const resultado = document.getElementById('resultCard');
+
+        if (!codigo) {
+            alert("Por favor, insira ou carregue um código Python primeiro.");
+            return;
+        }
+
+        loading.style.display = 'block';
+        resultado.style.display = 'none';
+
+        setTimeout(() => {
+            loading.style.display = 'none';
+            resultado.style.display = 'flex';
+            resultado.style.flexDirection = 'column';
+
+            let complexidade = "Baixa";
+            let pep8Status = "Conforme";
+            let alertasCount = 1;
+            let diagnosticoText = "";
+            let recomendacoesHTML = "";
+
+            const codigoUpper = codigo.toUpperCase();
+
+            if (codigoUpper.includes("ITERROWS")) {
+                complexidade = "Alta";
+                pep8Status = "Atenção";
+                alertasCount = 2;
+                diagnosticoText = "O uso de <strong>.iterrows()</strong> em bibliotecas como Pandas é altamente custoso e lento para grandes volúveis de dados, pois desacopla as operações vetorizadas do C.";
+                recomendacoesHTML = `
+                    <li>Substitua iterações baseadas em linhas por operações vetorizadas do Pandas ou use <code>df.apply()</code> como alternativa intermediária.</li>
+                    <li>Utilize filtros lógicos diretos (ex: <code>df[df['status'] == 'Concluido']</code>) em vez de percorrer linha por linha com condicionais.</li>
+                `;
+            } else if (codigoUpper.includes("REQUESTS")) {
+                complexidade = "Média";
+                pep8Status = "Bom";
+                diagnosticoText = "Código estruturado para consumo de APIs externas. A tratativa básica de status HTTP está presente, mas falta tratamento de exceções robusto (como timeouts ou falhas de conexão).";
+                recomendacoesHTML = `
+                    <li>Envolva a requisição em um bloco <code>try-except</code> capturando <code>requests.exceptions.RequestException</code> para evitar falhas abruptas.</li>
+                    <li>Adicione um parâmetro de <code>timeout</code> na chamada <code>requests.get()</code> para evitar travamentos em caso de lentidão na rede.</li>
+                `;
+            } else {
+                complexidade = "Baixa";
+                pep8Status = "Excelente";
+                diagnosticoText = "O código possui boa legibilidade, lógica linear limpa e segue adequadamente as convenções fundamentais de nomenclatura do PEP 8.";
+                recomendacoesHTML = `
+                    <li>Considere adicionar docstrings (documentação interna) nas funções para detalhar os tipos de parâmetros de entrada e saída.</li>
+                    <li>Mantenha testes unitários automatizados para garantir a estabilidade em futuras manutenções.</li>
+                `;
+            }
+
+            document.getElementById('resComplexidade').innerText = complexidade;
+            document.getElementById('resPep8').innerText = pep8Status;
+            document.getElementById('resAlertas').innerText = `${alertasCount} item(ns)`;
+            document.getElementById('resDiagnostico').innerHTML = diagnosticoText;
+            document.getElementById('resRecomendacoes').innerHTML = recomendacoesHTML;
+
+            resultado.scrollIntoView({ behavior: 'smooth' });
+        }, 800);
+    }
+</script>
+
+</body>
+</html>

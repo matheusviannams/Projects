@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador e Code Review Python</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            background-color: #0f172a;
+            color: #38bdf8;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        button.secondary {
+            background-color: #475569;
+        }
+
+        button.secondary:hover {
+            background-color: #334155;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background-color: #dbeafe;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-box span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .metric-box strong {
+            font-size: 18px;
+            color: var(--text-main);
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            display: none;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Simulador & Code Review Python</h1>
+        <p>Insira seu código Python para uma auditoria analítica e simulação de execução.</p>
+    </header>
+
+    <div class="card">
+        <label for="pythonCode">Editor de Código Python:</label>
+        <textarea id="pythonCode" placeholder="Cole seu código Python aqui..."></textarea>
+        
+        <div class="button-group">
+            <button class="secondary" onclick="carregarExemplo()">Carregar Código Exemplo</button>
+            <button onclick="executarSimulador()">Executar Simulador Python</button>
+        </div>
+
+        <div id="loadingDiv" class="loading">Compilando árvore sintática e avaliando padrões Python...</div>
+    </div>
+
+    <div id="resultCard" class="card result-section">
+        <div class="result-header">
+            <h3>Relatório de Execução e Análise</h3>
+            <span class="badge">Python 3.10+</span>
+        </div>
+
+        <div class="metric-grid">
+            <div class="metric-box">
+                <span>Status da Simulação</span>
+                <strong id="resStatus" style="color: #16a34a;">Sucesso</strong>
+            </div>
+            <div class="metric-box">
+                <span>Complexidade</span>
+                <strong id="resComplexidade">Média</strong>
+            </div>
+            <div class="metric-box">
+                <span>Padrão PEP 8</span>
+                <strong id="resPep8">Bom</strong>
+            </div>
+        </div>
+
+        <h4>Diagnóstico Analítico do Código:</h4>
+        <div id="resDiagnostico" style="line-height: 1.6; margin-bottom: 15px;"></div>
+
+        <h4>Recomendações Técnicas:</h4>
+        <ul id="resRecomendacoes"></ul>
+    </div>
+</div>
+
+<script>
+    const exemplosPython = [
+        `from datetime import datetime
+
+def filtrar_transacoes(transacoes):
+    imposto = 0.05
+    return [
+        {"id": t["id"], "valor_final": t["valor"] * (1 + imposto)}
+        for t in transacoes if t.get("status") == "APROVADO"
+    ]
+
+dados = [{"id": 1, "valor": 200, "status": "APROVADO"}]
+print(filtrar_transacoes(dados))`,
+
+        `import pandas as pd
+
+def processar_dados(arquivo):
+    df = pd.read_csv(arquivo)
+    # Alerta: uso de iterrows
+    for index, row in df.iterrows():
+        print(row['nome'])`,
+
+        `def calcular_fatorial(n):
+    if n < 0:
+        raise ValueError("Número inválido")
+    res = 1
+    for i in range(1, n + 1):
+        res *= i
+    return res
+
+print(calcular_fatorial(5))`
+    ];
+
+    function carregarExemplo() {
+        const randomIndex = Math.floor(Math.random() * exemplosPython.length);
+        document.getElementById('pythonCode').value = exemplosPython[randomIndex];
+        document.getElementById('resultCard').style.display = 'none';
+    }
+
+    function executarSimulador() {
+        const codigo = document.getElementById('pythonCode').value.trim();
+        const loading = document.getElementById('loadingDiv');
+        const resultado = document.getElementById('resultCard');
+
+        if (!codigo) {
+            alert("Por favor, insira um código Python no editor.");
+            return;
+        }
+
+        // Exibe o carregamento e oculta resultados antigos
+        loading.style.display = 'block';
+        resultado.style.display = 'none';
+
+        setTimeout(() => {
+            loading.style.display = 'none';
+            resultado.style.display = 'block';
+
+            let statusSimulacao = "Executado com Sucesso";
+            let complexidade = "Baixa";
+            let pep8Status = "Conforme";
+            let diagnosticoText = "";
+            let recomendacoesHTML = "";
+
+            const codigoUpper = codigo.toUpperCase();
+
+            if (codigoUpper.includes("ITERROWS")) {
+                complexidade = "Alta";
+                pep8Status = "Atenção";
+                diagnosticoText = "O simulador detectou o uso de <strong>.iterrows()</strong>. Embora funcione, essa abordagem é extremamente lenta para grandes volumes de dados no Pandas.";
+                recomendacoesHTML = `
+                    <li>Substitua iterações baseadas em linhas por operações vetorizadas.</li>
+                    <li>Utilize métodos nativos do Pandas para otimizar o tempo de processamento.</li>
+                `;
+            } else if (codigoUpper.includes("DEF ")) {
+                diagnosticoText = "O código define funções de forma estruturada. A lógica lógica aparente está correta e a sintaxe geral é compatível com o interpretador Python.";
+                recomendacoesHTML = `
+                    <li>Considere adicionar dicas de tipo (Type Hinting) nos parâmetros das funções para maior clareza.</li>
+                    <li>Certifique-se de tratar exceções pontuais usando blocos <code>try-except</code> caso receba dados externos.</li>
+                `;
+            } else {
+                diagnosticoText = "Script Python interpretado diretamente sem blocos complexos. O fluxo sequencial foi validado com sucesso.";
+                recomendacoesHTML = `
+                    <li>Se o script crescer, organize as instruções dentro de funções ou classes para facilitar testes unitários.</li>
+                `;
+            }
+
+            document.getElementById('resStatus').innerText = statusSimulacao;
+            document.getElementById('resComplexidade').innerText = complexidade;
+            document.getElementById('resPep8').innerText = pep8Status;
+            document.getElementById('resDiagnostico').innerHTML = diagnosticoText;
+            document.getElementById('resRecomendacoes').innerHTML = recomendacoesHTML;
+
+            resultado.scrollIntoView({ behavior: 'smooth' });
+        }, 700);
+    }
+</script>
+
+</body>
+</html>

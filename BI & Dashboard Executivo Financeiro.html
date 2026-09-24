@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI & Análise Financeira Executiva - Dashboard Completo</title>
+    <style>
+        :root { 
+            --primary-color: #0f766e; 
+            --primary-hover: #115e59;
+            --bg-color: #f0fdfa; 
+            --text-color: #1f2937; 
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --accent-yellow: #d97706;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin-top: 0;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            font-size: 13px;
+        }
+        input { 
+            width: 100%; 
+            padding: 9px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+        }
+        button { 
+            width: 100%; 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-weight: bold; 
+            font-size: 16px;
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background-color 0.2s;
+        }
+        button:hover { 
+            background-color: var(--primary-hover); 
+        }
+        .bi-dashboard { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background-color: #f9fafb; 
+            border-radius: 8px; 
+            border: 1px solid #e5e7eb;
+        }
+        .bi-dashboard h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        .metric-card span {
+            display: block;
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .metric-card strong {
+            font-size: 14px;
+            color: #111827;
+        }
+        .insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .insights-list li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .insight-success { background-color: #ecfdf5; color: #065f46; border-left: 4px solid var(--accent-green); }
+        .insight-warning { background-color: #fffbeb; color: #92400e; border-left: 4px solid var(--accent-yellow); }
+        .insight-danger { background-color: #fef2f2; color: #991b1b; border-left: 4px solid var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BI & Dashboard Executivo Financeiro</h2>
+    
+    <div class="section-title">1. Receitas e Custos Diretos</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Receita Bruta Total (R$):</label>
+            <input type="number" id="receita" step="0.01" value="500000.00">
+        </div>
+        <div class="form-group">
+            <label>COGS - Custo dos Produtos/Serviços (R$):</label>
+            <input type="number" id="cogs" step="0.01" value="200000.00">
+        </div>
+    </div>
+
+    <div class="section-title">2. Custos Operacionais e Investimentos</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>OPEX - Despesas Operacionais (R$):</label>
+            <input type="number" id="opex" step="0.01" value="120000.00">
+        </div>
+        <div class="form-group">
+            <label>CAPEX - Investimento em Ativos Fixos (R$):</label>
+            <input type="number" id="capex" step="0.01" value="50000.00">
+        </div>
+    </div>
+
+    <div class="section-title">3. Estrutura de Capital e Patrimônio</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Ativo Total da Empresa (para ROA) (R$):</label>
+            <input type="number" id="ativoTotal" step="0.01" value="800000.00">
+        </div>
+        <div class="form-group">
+            <label>Patrimônio Líquido (para ROE) (R$):</label>
+            <input type="number" id="patrimonioLiquido" step="0.01" value="400000.00">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Investimento Inicial do Projeto (para ROI) (R$):</label>
+            <input type="number" id="investimentoInicial" step="0.01" value="150000.00">
+        </div>
+        <div class="form-group">
+            <label>Depreciação e Amortização (R$):</label>
+            <input type="number" id="depreciacao" step="0.01" value="15000.00">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Despesas Financeiras / Juros & Impostos (R$):</label>
+            <input type="number" id="jurosImpostos" step="0.01" value="25000.00">
+        </div>
+    </div>
+    
+    <button onclick="gerarAnaliseCompleta()">Processar Business Intelligence</button>
+
+    <div id="biDashboard" class="bi-dashboard" style="display:none;">
+        <h3>Dashboard Analítico Completo (20+ Métricas)</h3>
+        
+        <!-- Bloco 1: Lucratividade Básica e Operacional -->
+        <div class="section-title" style="margin-top: 5px;">Rentabilidade e Caixa Operacional</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>EBITDA</span><strong id="resEbitda">-</strong></div>
+            <div class="metric-card"><span>EBIT (Op.)</span><strong id="resEbit">-</strong></div>
+            <div class="metric-card"><span>Lucro Líquido</span><strong id="resLucroLiquido">-</strong></div>
+            <div class="metric-card"><span>Margem EBITDA</span><strong id="resMargemEbitda">-</strong></div>
+        </div>
+
+        <!-- Bloco 2: Retorno sobre Investimentos -->
+        <div class="section-title" style="margin-top: 5px;">Retornos e Eficiência de Capital</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>ROI</span><strong id="resRoi">-</strong></div>
+            <div class="metric-card"><span>ROA</span><strong id="resRoa">-</strong></div>
+            <div class="metric-card"><span>ROE</span><strong id="resRoe">-</strong></div>
+            <div class="metric-card"><span>Payback Est.</span><strong id="resPayback">-</strong></div>
+        </div>
+
+        <!-- Bloco 3: Indicadores Estratégicos Adicionais -->
+        <div class="section-title" style="margin-top: 5px;">Indicadores de Gestão & Estrutura</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>Margem Bruta</span><strong id="resMargemBruta">-</strong></div>
+            <div class="metric-card"><span>Margem Líquida</span><strong id="resMargemLiquida">-</strong></div>
+            <div class="metric-card"><span>Break-even</span><strong id="resBreakEven">-</strong></div>
+            <div class="metric-card"><span>Giro do Ativo</span><strong id="resGiroAtivo">-</strong></div>
+        </div>
+
+        <div class="metric-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="metric-card"><span>Índice OPEX/Receita</span><strong id="resIndiceOpex">-</strong></div>
+            <div class="metric-card"><span>Relação CAPEX/Receita</span><strong id="resCapexReceita">-</strong></div>
+            <div class="metric-card"><span>Markup Operacional</span><strong id="resMarkup">-</strong></div>
+        </div>
+
+        <div class="section-title" style="margin-top: 15px;">Insights Executivos & Diagnóstico de BI</div>
+        <ul class="insights-list" id="biInsights">
+            <!-- Injetado via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+function gerarAnaliseCompleta() {
+    const receita = parseFloat(document.getElementById('receita').value) || 0;
+    const cogs = parseFloat(document.getElementById('cogs').value) || 0;
+    const opex = parseFloat(document.getElementById('opex').value) || 0;
+    const capex = parseFloat(document.getElementById('capex').value) || 0;
+    const ativoTotal = parseFloat(document.getElementById('ativoTotal').value) || 0;
+    const patrimonioLiquido = parseFloat(document.getElementById('patrimonioLiquido').value) || 0;
+    const investimentoInicial = parseFloat(document.getElementById('investimentoInicial').value) || 0;
+    const depreciacao = parseFloat(document.getElementById('depreciacao').value) || 0;
+    const jurosImpostos = parseFloat(document.getElementById('jurosImpostos').value) || 0;
+
+    if (receita <= 0) {
+        alert("Informe uma Receita Bruta válida.");
+        return;
+    }
+
+    // --- CÁLCULOS FINANCEIROS ---
+    const lucroBruto = receita - cogs;
+    const margemBruta = (lucroBruto / receita) * 100;
+
+    const ebitda = lucroBruto - opex;
+    const margemEbitda = (ebitda / receita) * 100;
+
+    const ebit = ebitda - depreciacao;
+    const margemEbit = (ebit / receita) * 100;
+
+    const lucroLiquido = ebit - jurosImpostos;
+    const margemLiquida = (lucroLiquido / receita) * 100;
+
+    const roi = investimentoInicial > 0 ? (lucroLiquido / investimentoInicial) * 100 : 0;
+    const roa = ativoTotal > 0 ? (lucroLiquido / ativoTotal) * 100 : 0;
+    const roe = patrimonioLiquido > 0 ? (lucroLiquido / patrimonioLiquido) * 100 : 0;
+
+    // Ponto de Equilíbrio (Break-even): Custos Fixos / Margem de Contribuição Percentual
+    // Assumindo OPEX como custo fixo operacional puro
+    const margemContribuicaoPerc = (receita - cogs) / receita;
+    const breakEven = margemContribuicaoPerc > 0 ? opex / margemContribuicaoPerc : 0;
+
+    const giroAtivo = ativoTotal > 0 ? receita / ativoTotal : 0;
+    const indiceOpex = (opex / receita) * 100;
+    const capexReceita = (capex / receita) * 100;
+    const markup = cogs > 0 ? receita / cogs : 0;
+
+    // Payback Simples em Meses (Investimento Inicial / Lucro Líquido Mensal Estimado)
+    const lucroMensal = lucroLiquido / 12;
+    const paybackMeses = lucroMensal > 0 ? investimentoInicial / lucroMensal : 0;
+
+    // --- EXIBIÇÃO NOS CARDS ---
+    document.getElementById('resEbitda').innerText = ebitda.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resEbit').innerText = ebit.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resLucroLiquido').innerText = lucroLiquido.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resMargemEbitda').innerText = margemEbitda.toFixed(2) + "%";
+
+    document.getElementById('resRoi').innerText = roi.toFixed(2) + "%";
+    document.getElementById('resRoa').innerText = roa.toFixed(2) + "%";
+    document.getElementById('resRoe').innerText = roe.toFixed(2) + "%";
+    document.getElementById('resPayback').innerText = paybackMeses > 0 ? paybackMeses.toFixed(1) + " meses" : "N/A";
+
+    document.getElementById('resMargemBruta').innerText = margemBruta.toFixed(2) + "%";
+    document.getElementById('resMargemLiquida').innerText = margemLiquida.toFixed(2) + "%";
+    document.getElementById('resBreakEven').innerText = breakEven.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resGiroAtivo').innerText = giroAtivo.toFixed(2) + "x";
+
+    document.getElementById('resIndiceOpex').innerText = indiceOpex.toFixed(2) + "%";
+    document.getElementById('resCapexReceita').innerText = capexReceita.toFixed(2) + "%";
+    document.getElementById('resMarkup').innerText = markup.toFixed(2) + "x";
+
+    // --- MOTOR DE INSIGHTS DE BI ---
+    let insightsHtml = '';
+
+    if (ebitda < 0) {
+        insightsHtml += `<li class="insight-danger"><strong>Alerta Crítico (EBITDA Negativo):</strong> A operação consome mais caixa do que gera. Os custos diretos e operatórios superam o faturamento.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Geração de Caixa Operacional Saudável:</strong> EBITDA positivo gerando uma margem operacional de ${margemEbitda.toFixed(1)}%.</li>`;
+    }
+
+    if (roe > 15) {
+        insightsHtml += `<li class="insight-success"><strong>Excelente Retorno para Acionistas (ROE):</strong> O ROE de ${roe.toFixed(1)}% indica uma ótima remuneração do capital próprio investido.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-warning"><strong>ROE Moderado (${roe.toFixed(1)}%):</strong> O retorno sobre o patrimônio líquido pode ser melhorado com otimização de margens ou alavancagem inteligente.</li>`;
+    }
+
+    if (receita < breakEven) {
+        insightsHtml += `<li class="insight-danger"><strong>Abaixo do Ponto de Equilíbrio:</strong> Sua receita atual está abaixo do break-even necessário (${breakEven.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}). A empresa está operando no prejuízo operacional.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Segurança Operacional:</strong> A receita atual supera com folga o ponto de equilíbrio, garantindo margem de segurança contra quedas de volume.</li>`;
+    }
+
+    if (indiceOpex > 40) {
+        insightsHtml += `<li class="insight-warning"><strong>Peso Elevado de OPEX:</strong> As despesas operacionais consomem ${indiceOpex.toFixed(1)}% da receita. Recomenda-se uma revisão rigorosa de custos fixos e administrativos.</li>`;
+    }
+
+    document.getElementById('biInsights').innerHTML = insightsHtml;
+    document.getElementById('biDashboard').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

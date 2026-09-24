@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Controller Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <header class="bg-white border-b px-8 py-5 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Dashboard Financeiro</h1>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Gestão de Contas a Receber e Pagar</p>
+        </div>
+        <div class="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg font-bold text-sm">Status: Atualizado</div>
+    </header>
+
+    <main class="p-8 space-y-8">
+        <!-- Seção de Input -->
+        <section class="bg-white p-6 rounded-2xl border shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-800 mb-6 flex items-center gap-2"><i class="fa-solid fa-calculator text-slate-400"></i> Parâmetros de Entrada</h2>
+            <form id="financeForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Entrada (Receber)</label><input type="number" id="receber" value="50000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Saída (Pagar)</label><input type="number" id="pagar" value="35000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Estornos</label><input type="number" id="estorno" value="2000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Reembolsos</label><input type="number" id="reembolso" value="1500" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Devolução</label><input type="number" id="devolucao" value="1000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Remessas</label><input type="number" id="remessa" value="5000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Caixa (Saldo)</label><input type="number" id="caixa" value="20000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Provisão</label><input type="number" id="provisao" value="5000" class="w-full border-slate-200 border rounded-lg p-2.5 text-sm"></div>
+                <div class="md:col-span-4"><button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg text-sm transition">Gerar Dashboards</button></div>
+            </form>
+        </section>
+
+        <!-- Cards Kpis -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-2xl border shadow-sm"><p class="text-[10px] text-slate-400 uppercase font-bold">Fluxo de Caixa Líquido</p><h3 id="cardFluxo" class="text-2xl font-bold text-slate-900">R$ 0</h3></div>
+            <div class="bg-white p-6 rounded-2xl border shadow-sm"><p class="text-[10px] text-slate-400 uppercase font-bold">Taxa de Devolução/Receita</p><h3 id="cardDev" class="text-2xl font-bold text-slate-900">0%</h3></div>
+            <div class="bg-white p-6 rounded-2xl border shadow-sm"><p class="text-[10px] text-slate-400 uppercase font-bold">Disponibilidade (Caixa/Provisão)</p><h3 id="cardDisp" class="text-2xl font-bold text-slate-900">0x</h3></div>
+            <div class="bg-white p-6 rounded-2xl border shadow-sm"><p class="text-[10px] text-slate-400 uppercase font-bold">Eficácia Pagar/Receber</p><h3 id="cardEfic" class="text-2xl font-bold text-slate-900">0%</h3></div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-2xl border shadow-sm"><canvas id="barChart" height="150"></canvas></div>
+            <div class="bg-white p-6 rounded-2xl border shadow-sm"><canvas id="pieChart" height="150"></canvas></div>
+        </div>
+
+        <!-- Insights -->
+        <section class="bg-white p-8 rounded-2xl border shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-900 mb-6">10 Insights Estratégicos</h2>
+            <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('financeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const rec = parseFloat(document.getElementById('receber').value);
+            const pag = parseFloat(document.getElementById('pagar').value);
+            const est = parseFloat(document.getElementById('estorno').value);
+            const reem = parseFloat(document.getElementById('reembolso').value);
+            const dev = parseFloat(document.getElementById('devolucao').value);
+            const rem = parseFloat(document.getElementById('remessa').value);
+            const cx = parseFloat(document.getElementById('caixa').value);
+            const prov = parseFloat(document.getElementById('provisao').value);
+
+            document.getElementById('cardFluxo').innerText = 'R$ ' + (rec - pag - est - reem - dev).toLocaleString();
+            document.getElementById('cardDev').innerText = ((dev/rec)*100).toFixed(1) + '%';
+            document.getElementById('cardDisp').innerText = (cx/prov).toFixed(1) + 'x';
+            document.getElementById('cardEfic').innerText = ((pag/rec)*100).toFixed(1) + '%';
+
+            const insights = [
+                "1. Liquidez: Mantenha a relação Caixa/Provisão acima de 2x para segurança operacional.",
+                "2. Devoluções: Taxas superiores a 5% sobre a receita indicam falhas crônicas no produto ou processo.",
+                "3. Fluxo de Caixa: A diferença entre entradas e saídas deve ser monitorada semanalmente.",
+                "4. Estornos: Um volume alto de estornos pode sinalizar problemas na experiência do cliente ou segurança.",
+                "5. Contas a Pagar: Otimize datas de pagamento para alinhar com as entradas de recebíveis.",
+                "6. Remessas: O custo de envio de remessas deve ser minimizado via automação financeira.",
+                "7. Provisões: Aumente o fundo de provisão em meses de sazonalidade negativa.",
+                "8. Reembolsos: Analise a causa raiz de cada reembolso para reduzir o custo evitável.",
+                "9. Gestão de Contas: Receber à vista e pagar a prazo melhora o capital de giro.",
+                "10. Dashboarding: Acompanhar esses KPIs mensalmente reduz o risco de insolvência."
+            ];
+            document.getElementById('insightsList').innerHTML = insights.map(i => `<div class='p-4 bg-slate-50 rounded-xl text-xs text-slate-600'>${i}</div>`).join('');
+            
+            // Gráficos
+            new Chart(document.getElementById('barChart'), { type: 'bar', data: { labels: ['Entradas', 'Saídas', 'Devoluções', 'Remessas'], datasets: [{ label: 'R$', data: [rec, pag, dev, rem], backgroundColor: '#1e293b' }] }});
+            new Chart(document.getElementById('pieChart'), { type: 'doughnut', data: { labels: ['Estornos', 'Reembolsos', 'Caixa', 'Provisão'], datasets: [{ data: [est, reem, cx, prov], backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#6366f1'] }] }});
+        });
+        document.getElementById('financeForm').dispatchEvent(new Event('submit'));
+    </script>
+</body>
+</html>

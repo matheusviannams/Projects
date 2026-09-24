@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador Fiscal - CST, CFOP & Descrição de Operação</title>
+    <style>
+        :root { 
+            --primary-color: #0369a1; /* Azul Fiscal / Compliance */
+            --primary-hover: #0284c7;
+            --bg-color: #f0f9ff; 
+            --text-color: #0f172a; 
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --accent-yellow: #d97706;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin-top: 0;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 2px solid #bae6fd;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            font-size: 13px;
+        }
+        select, input { 
+            width: 100%; 
+            padding: 9px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            background-color: #fff;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
+        }
+        button { 
+            width: 100%; 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-weight: bold; 
+            font-size: 16px;
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background-color 0.2s;
+        }
+        button:hover { 
+            background-color: var(--primary-hover); 
+        }
+        .bi-dashboard { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background-color: #e0f2fe; 
+            border-radius: 8px; 
+            border: 1px solid #7dd3fc;
+        }
+        .bi-dashboard h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #7dd3fc;
+            padding-bottom: 8px;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #bae6fd;
+            text-align: center;
+        }
+        .metric-card span {
+            display: block;
+            font-size: 11px;
+            color: #475569;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .metric-card strong {
+            font-size: 14px;
+            color: #0f172a;
+        }
+        .insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .insights-list li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .insight-success { background-color: #ecfdf5; color: #065f46; border-left: 4px solid var(--accent-green); }
+        .insight-warning { background-color: #fffbeb; color: #92400e; border-left: 4px solid var(--accent-yellow); }
+        .insight-danger { background-color: #fef2f2; color: #991b1b; border-left: 4px solid var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Validador de Compliance Fiscal (CST, CFOP & Operação)</h2>
+    
+    <div class="section-title">1. Parâmetros da Transação</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Origem da Mercadoria (Regime ICMS):</label>
+            <select id="origemMercadoria">
+                <option value="0">0 - Nacional, exceto as indicadas nos códigos 3 a 5</option>
+                <option value="1" selected>1 - Estrangeira - Importação direta</option>
+                <option value="2">2 - Estrangeira - Adquirida no mercado interno</option>
+                <option value="3">3 - Nacional, mercadoria com Conteúdo de Importação superior a 40%</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Tipo de Destinatário:</label>
+            <select id="tipoDestinatario">
+                <option value="contribuinte" selected>Contribuinte do ICMS (B2B)</option>
+                <option value="nao_contribuinte">Consumidor Final / Não Contribuinte (B2C)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Rota da Operação:</label>
+            <select id="rotaOperacao">
+                <option value="interno">Interna (Mesmo Estado)</option>
+                <option value="interestadual" selected>Interestadual (Outro Estado)</option>
+                <option value="exterior">Operação com o Exterior (Exportação)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Finalidade da Operação:</label>
+            <select id="finalidade">
+                <option value="venda" selected>Comercialização / Revenda / Venda Direta</option>
+                <option value="industrializacao">Industrialização</option>
+                <option value="brinde">Doação / Brinde</option>
+                <option value="devolucao">Devolução de Compra/Venda</option>
+                <option value="remessa_consignacao">Remessa em Consignação Mercantil</option>
+                <option value="venda_consignacao">Venda de Mercadoria em Consignação</option>
+                <option value="remessa_demonstracao">Remessa para Demonstração</option>
+                <option value="retorno_demonstracao">Retorno de Mercadoria enviada para Demonstração</option>
+                <option value="remessa_industrializacao">Remessa para Industrialização por Terceiros</option>
+                <option value="retorno_industrializacao">Retorno de Mercadoria utilizada na Industrialização</option>
+                <option value="remessa_amostra">Remessa de Amostra Grátis</option>
+                <option value="transferencia">Transferência de Mercadoria entre Estabelecimentos</option>
+                <option value="remessa_conserto">Remessa para conserto ou reparo</option>
+                <option value="retorno_conserto">Retorno de mercadoria recebida para conserto</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">2. Códigos a Validar</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>CST do ICMS (Código de Situação Tributária):</label>
+            <select id="cstIcms">
+                <option value="00">00 - Tributada integralmente</option>
+                <option value="10">10 - Tributada e com cobrança do ICMS por substituição tributária</option>
+                <option value="20">20 - Com redução de base de cálculo</option>
+                <option value="40" selected>40 - Isenta</option>
+                <option value="41">41 - Não tributada</option>
+                <option value="60">60 - ICMS cobrado anteriormente por substituição tributária</option>
+                <option value="90">90 - Outras</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>CFOP Informado:</label>
+            <input type="text" id="cfopInput" placeholder="Ex: 6102" value="6102">
+        </div>
+    </div>
+    
+    <button onclick="validarFiscalCompliance()">Executar Validação Fiscal</button>
+
+    <div id="biDashboard" class="bi-dashboard" style="display:none;">
+        <h3>Relatório de Diagnóstico Fiscal & Consistência</h3>
+        
+        <div class="metric-grid">
+            <div class="metric-card"><span>CST Analisado</span><strong id="resCst">-</strong></div>
+            <div class="metric-card"><span>CFOP Informado</span><strong id="resCfop">-</strong></div>
+            <div class="metric-card"><span>Classificação da Operação</span><strong id="resNatureza">-</strong></div>
+        </div>
+
+        <div class="section-title" style="margin-top: 15px;">Parecer Técnico & Auditoria de Consistência</div>
+        <ul class="insights-list" id="biInsights">
+            <!-- Injetado via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+function validarFiscalCompliance() {
+    const origem = document.getElementById('origemMercadoria').value;
+    const tipoDest = document.getElementById('tipoDestinatario').value;
+    const rota = document.getElementById('rotaOperacao').value;
+    const finalidade = document.getElementById('finalidade').value;
+    const cst = document.getElementById('cstIcms').value;
+    const cfopStr = document.getElementById('cfopInput').value.trim();
+    const cfopNum = parseInt(cfopStr) || 0;
+
+    if (!cfopStr || cfopStr.length !== 4) {
+        alert("Informe um CFOP válido com 4 dígitos.");
+        return;
+    }
+
+    // --- IDENTIFICAÇÃO DA NATUREZA DA OPERAÇÃO PELO CFOP ---
+    let primeiroDigito = cfopStr.charAt(0);
+    let descRota = "";
+    let descFluxo = "";
+    let descFinalidade = "";
+
+    // Primeiro dígito define entrada/saída e âmbito
+    if (['1', '2', '3'].includes(primeiroDigito)) {
+        descFluxo = "Entrada de Mercadorias / Aquisição";
+        if (primeiroDigito === '1') descRota = "Estadual (Dentro do Estado)";
+        else if (primeiroDigito === '2') descRota = "Interestadual (Outro Estado)";
+        else if (primeiroDigito === '3') descRota = "Importação (Exterior)";
+    } else if (['5', '6', '7'].includes(primeiroDigito)) {
+        descFluxo = "Saída de Mercadorias / Prestação de Venda";
+        if (primeiroDigito === '5') descRota = "Estadual (Dentro do Estado)";
+        else if (primeiroDigito === '6') descRota = "Interestadual (Outro Estado)";
+        else if (primeiroDigito === '7') descRota = "Exportação (Para o Exterior)";
+    } else {
+        descFluxo = "CFOP Inválido ou Incompatível";
+        descRota = "Desconhecido";
+    }
+
+    // Detalhes adicionais baseados na finalidade selecionada
+    const finalidadeTextos = {
+        'venda': 'Comercialização / Revenda de Mercadoria',
+        'industrializacao': 'Industrialização Efetiva',
+        'brinde': 'Doação ou Distribuição de Brinde',
+        'devolucao': 'Devolução de Compra/Venda',
+        'remessa_consignacao': 'Remessa em Consignação Mercantil',
+        'venda_consignacao': 'Venda de Mercadoria em Consignação',
+        'remessa_demonstracao': 'Remessa para Demonstração',
+        'retorno_demonstracao': 'Retorno de Demonstração',
+        'remessa_industrializacao': 'Remessa para Industrialização por Terceiros',
+        'retorno_industrializacao': 'Retorno de Industrialização por Terceiros',
+        'remessa_amostra': 'Remessa de Amostra Grátis',
+        'transferencia': 'Transferência entre Estabelecimentos da Mesma Empresa',
+        'remessa_conserto': 'Remessa para Conserto ou Reparo',
+        'retorno_conserto': 'Retorno de Mercadoria Consertada'
+    };
+
+    descFinalidade = finalidadeTextos[finalidade] || 'Operação Geral';
+    const descricaoCompletaOperação = `${descFluxo} - ${descRota} (${descFinalidade})`;
+
+    // --- EXIBIÇÃO NOS CARDS ---
+    document.getElementById('resCst').innerText = `CST ${origem}${cst}`;
+    document.getElementById('resCfop').innerText = cfopStr;
+    document.getElementById('resNatureza').innerText = descricaoCompletaOperação;
+
+    // --- MOTOR DE AUDITORIA E INSIGHTS DE COMPLIANCE ---
+    let insightsHtml = '';
+
+    // 1. Validação de Rota vs CFOP (Primeiro Dígito)
+    if (rota === 'interno' && ['2', '3', '6', '7'].includes(primeiroDigito)) {
+        insightsHtml += `<li class="insight-danger"><strong>Incompatibilidade de Rota (Erro Crítico):</strong> Você selecionou operação <em>Interna</em>, mas o CFOP informado (${cfopStr}) inicia com <strong>${primeiroDigito}</strong>, o que indica operação Interestadual ou Externa. O CFOP correto deveria iniciar com 1 ou 5.</li>`;
+    } else if (rota === 'interestadual' && ['1', '2', '3'].includes(primeiroDigito)) {
+        insightsHtml += `<li class="insight-danger"><strong>Incompatibilidade de Rota (Erro Crítico):</strong> Você selecionou operação <em>Interestadual</em>, mas informou um CFOP de Entrada com dígito <strong>${primeiroDigito}</strong>. Operações de saída interestadual devem começar com <strong>6</strong>.</li>`;
+    } else if (rota === 'interestadual' && primeiroDigito === '5') {
+        insightsHtml += `<li class="insight-danger"><strong>Incompatibilidade de Rota (Erro Crítico):</strong> CFOP iniciado em <strong>5</strong> refere-se a operações estaduais. Para destino interestadual de saída, o CFOP deve iniciar em <strong>6</strong>.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Consistência de Rota e CFOP:</strong> O indicativo do primeiro dígito do CFOP (${primeiroDigito}) está alinhado com a rota fiscal selecionada.</li>`;
+    }
+
+    // 2. Alertas específicos para as novas finalidades
+    if (finalidade === 'remessa_consignacao' || finalidade === 'venda_consignacao') {
+        insightsHtml += `<li class="insight-warning"><strong>Atenção à Consignação:</strong> Operações em consignação exigem controle estrito de prazos para emissão posterior da nota fiscal de faturamento definitivo ou retorno simbólico.</li>`;
+    } else if (finalidade === 'remessa_amostra') {
+        insightsHtml += `<li class="insight-warning"><strong>Regra de Amostra Grátis:</strong> Verifique se o produto possui isenção ou imunidade de ICMS/PIS/COFINS específica para amostras conforme legislação aplicável.</li>`;
+    } else if (finalidade === 'remessa_industrializacao') {
+        insightsHtml += `<li class="insight-warning"><strong>Industrialização por Terceiros:</strong> O envio sob este propósito suspende a exigibilidade do ICMS, devendo retornar ao estabelecimento original no prazo legal.</li>`;
+    }
+
+    // 3. Validação de CST vs Regras Tributárias Comuns
+    if (cst === '10' || cst === '60') {
+        insightsHtml += `<li class="insight-warning"><strong>Regime de Substituição Tributária (CST ${cst}):</strong> Certifique-se de que a UF de destino possui Convênio ou Protocolo ICMS ST aplicável ao produto.</li>`;
+    } else if (cst === '40' || cst === '41') {
+        insightsHtml += `<li class="insight-warning"><strong>Operação Isenta / Não Tributada (CST ${cst}):</strong> Valide o fundamento legal (dispositivo normativo) que embasa a isenção fiscal nas Informações Complementares.</li>`;
+    } else if (cst === '00') {
+        insightsHtml += `<li class="insight-success"><strong>Tributação Integral (CST 00):</strong> Operação submetida à tributação normal do ICMS sem reduções ou retenções prévias.</li>`;
+    }
+
+    document.getElementById('biInsights').innerHTML = insightsHtml;
+    document.getElementById('biDashboard').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

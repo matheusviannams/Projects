@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisador Semântico de Planilhas</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; background: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .upload-area { border: 2px dashed #6366f1; padding: 40px; text-align: center; cursor: pointer; color: #6366f1; margin-bottom: 20px; }
+        .insight-card { background: #f8fafc; border-left: 5px solid #6366f1; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
+        h2 { color: #312e81; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Analisador de Contexto</h1>
+    <p>Este código vai ler sua planilha e tentar descrever <b>o que ela é</b> baseada nos dados.</p>
+    
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        Clique aqui para carregar sua Planilha (.xlsx, .csv)
+        <input type="file" id="fileInput" hidden accept=".xlsx, .xls, .csv">
+    </div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type: 'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+        
+        processarContexto(json);
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+function processarContexto(data) {
+    const header = data[0]; // Primeira linha (títulos)
+    const amostra = data.slice(1, 6); // Primeiras 5 linhas de dados
+    const colCount = header.length;
+    const rowCount = data.length - 1;
+
+    // Lógica de inferência (Algoritmo de Detecção de Tema)
+    let tema = "Arquivo de Dados Geral";
+    const headerStr = header.join(" ").toLowerCase();
+
+    if (headerStr.includes("valor") || headerStr.includes("preço") || headerStr.includes("venda")) tema = "Relatório Financeiro ou de Vendas";
+    else if (headerStr.includes("nome") || headerStr.includes("email") || headerStr.includes("telefone")) tema = "Lista de Cadastros/Clientes";
+    else if (headerStr.includes("data") || headerStr.includes("status") || headerStr.includes("tarefa")) tema = "Relatório de Projetos ou Cronograma";
+    else if (headerStr.includes("estoque") || headerStr.includes("produto") || headerStr.includes("quantidade")) tema = "Controle de Inventário";
+
+    let html = `<h2>Análise: ${tema}</h2>`;
+    html += `<div class="insight-card"><b>Resumo:</b> Esta planilha contém ${rowCount} registros organizados em ${colCount} colunas.</div>`;
+    html += `<div class="insight-card"><b>Assunto provável:</b> Analisando os cabeçalhos (${header.join(", ")}), o documento parece servir para o controle de ${tema.toLowerCase()}.</div>`;
+    
+    // Verificação de conteúdo
+    const temNumeros = amostra.some(row => row.some(cell => !isNaN(cell) && typeof cell === 'number'));
+    html += `<div class="insight-card"><b>Estrutura:</b> ${temNumeros ? "O documento possui dados numéricos, permitindo cálculos de métricas." : "O documento é majoritariamente descritivo/textual."}</div>`;
+    
+    // Identificação de colunas cruciais
+    html += `<div class="insight-card"><b>Colunas principais detectadas:</b> ${header.slice(0, 3).join(", ")}${colCount > 3 ? "..." : ""}</div>`;
+
+    document.getElementById('result').innerHTML = html;
+}
+</script>
+
+</body>
+</html>

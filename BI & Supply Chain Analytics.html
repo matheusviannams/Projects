@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI & Supply Chain Analytics - Gestão de Estoques</title>
+    <style>
+        :root { 
+            --primary-color: #1e3a8a; /* Azul Supply / Logística */
+            --primary-hover: #1e40af;
+            --bg-color: #f8fafc; 
+            --text-color: #1e293b; 
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --accent-yellow: #d97706;
+            --accent-blue: #2563eb;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin-top: 0;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            font-size: 13px;
+        }
+        input { 
+            width: 100%; 
+            padding: 9px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        button { 
+            width: 100%; 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-weight: bold; 
+            font-size: 16px;
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background-color 0.2s;
+        }
+        button:hover { 
+            background-color: var(--primary-hover); 
+        }
+        .bi-dashboard { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background-color: #f1f5f9; 
+            border-radius: 8px; 
+            border: 1px solid #cbd5e1;
+        }
+        .bi-dashboard h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 8px;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            text-align: center;
+        }
+        .metric-card span {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .metric-card strong {
+            font-size: 14px;
+            color: #0f172a;
+        }
+        .insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .insights-list li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .insight-success { background-color: #ecfdf5; color: #065f46; border-left: 4px solid var(--accent-green); }
+        .insight-warning { background-color: #fffbeb; color: #92400e; border-left: 4px solid var(--accent-yellow); }
+        .insight-danger { background-color: #fef2f2; color: #991b1b; border-left: 4px solid var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BI & Supply Chain Analytics (Gestão de Estoques)</h2>
+    
+    <div class="section-title">1. Dados de Estoque e Valorização</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Valor Total do Estoque Atual (R$):</label>
+            <input type="number" id="valorEstoque" step="0.01" value="150000.00">
+        </div>
+        <div class="form-group">
+            <label>Custo das Vendas Anual (COGS) (R$):</label>
+            <input type="number" id="cogs" step="0.01" value="600000.00">
+        </div>
+    </div>
+
+    <div class="section-title">2. Consumo, Prazos e Nível de Serviço</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Consumo / Venda Média Diária (Unidades ou R$):</label>
+            <input type="number" id="consumoDiario" step="0.01" value="2000.00">
+        </div>
+        <div class="form-group">
+            <label>Lead Time de Reposição (Dias):</label>
+            <input type="number" id="leadTime" step="1" value="15">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Estoque de Segurança Desejado (Dias):</label>
+            <input type="number" id="estoqueSegurancaDias" step="1" value="5">
+        </div>
+        <div class="form-group">
+            <label>Taxa de Ruptura de Estoque Atual (%):</label>
+            <input type="number" id="taxaRuptura" step="0.1" value="3.5">
+        </div>
+    </div>
+
+    <div class="section-title">3. Parâmetros de Custos Logísticos e Obsolescência</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Custo de Manutenção de Estoque / Carrying Cost (% ao ano):</label>
+            <input type="number" id="carryingCost" step="0.1" value="20.0">
+        </div>
+        <div class="form-group">
+            <label>Valor de Estoque Obsoleto / Parado (R$):</label>
+            <input type="number" id="estoqueObsoleto" step="0.01" value="12000.00">
+        </div>
+    </div>
+    
+    <button onclick="gerarSupplyBI()">Processar Supply Chain BI</button>
+
+    <div id="biDashboard" class="bi-dashboard" style="display:none;">
+        <h3>Dashboard de Inteligência Logística</h3>
+        
+        <!-- Bloco 1: Giros e Prazos -->
+        <div class="section-title" style="margin-top: 5px;">Giro e Cobertura</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>Giro de Estoque</span><strong id="resGiro">-</strong></div>
+            <div class="metric-card"><span>Cobertura (Dias)</span><strong id="resCobertura">-</strong></div>
+            <div class="metric-card"><span>Ponto de Pedido</span><strong id="resPontoPedido">-</strong></div>
+            <div class="metric-card"><span>Estoque Mínimo</span><strong id="resEstoqueMinimo">-</strong></div>
+        </div>
+
+        <!-- Bloco 2: Custos e Perdas -->
+        <div class="section-title" style="margin-top: 5px;">Custos de Armazenagem & Riscos</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>Custo Anual de Manutenção</span><strong id="resCustoManutencao">-</strong></div>
+            <div class="metric-card"><span>Capital Imobilizado Ocioso</span><strong id="resPctObsoleto">-</strong></div>
+            <div class="metric-card"><span>Nível de Serviço Estimado</span><strong id="resNivelServico">-</strong></div>
+            <div class="metric-card"><span>Índice de Ruptura</span><strong id="resRuptura">-</strong></div>
+        </div>
+
+        <div class="section-title" style="margin-top: 15px;">Insights Executivos & Recomendações de Supply Chain</div>
+        <ul class="insights-list" id="biInsights">
+            <!-- Injetado via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+function gerarSupplyBI() {
+    const valorEstoque = parseFloat(document.getElementById('valorEstoque').value) || 0;
+    const cogs = parseFloat(document.getElementById('cogs').value) || 0;
+    const consumoDiario = parseFloat(document.getElementById('consumoDiario').value) || 0;
+    const leadTime = parseInt(document.getElementById('leadTime').value) || 0;
+    const estoqueSegurancaDias = parseInt(document.getElementById('estoqueSegurancaDias').value) || 0;
+    const taxaRuptura = parseFloat(document.getElementById('taxaRuptura').value) || 0;
+    const carryingCostPerc = parseFloat(document.getElementById('carryingCost').value) / 100;
+    const estoqueObsoleto = parseFloat(document.getElementById('estoqueObsoleto').value) || 0;
+
+    if (valorEstoque <= 0 || consumoDiario <= 0) {
+        alert("Preencha o Valor do Estoque e o Consumo Diário corretamente.");
+        return;
+    }
+
+    // --- CÁLCULOS LOGÍSTICOS ---
+    // 1. Giro de Estoque (Inventory Turnover) = COGS / Valor do Estoque
+    const giroEstoque = valorEstoque > 0 ? cogs / valorEstoque : 0;
+
+    // 2. Cobertura de Estoque em Dias (Days Sales of Inventory - DSI) = 365 / Giro ou (Valor / Consumo Diário)
+    const coberturaDias = valorEstoque / consumoDiario;
+
+    // 3. Ponto de Pedido (Reorder Point) = (Consumo Diário * Lead Time) + Estoque de Segurança
+    const estoqueSegurancaValor = consumoDiario * estoqueSegurancaDias;
+    const pontoPedido = (consumoDiario * leadTime) + estoqueSegurancaValor;
+
+    // 4. Custo Anual de Manutenção de Estoque (Carrying Cost) = Valor do Estoque * Taxa (%)
+    const custoManutencaoAnual = valorEstoque * carryingCostPerc;
+
+    // 5. Percentual de Estoque Obsoleto
+    const pctObsoleto = valorEstoque > 0 ? (estoqueObsoleto / valorEstoque) * 100 : 0;
+
+    // 6. Nível de Serviço Estimado baseado na taxa de ruptura
+    const nivelServico = 100 - taxaRuptura;
+
+    // --- EXIBIÇÃO NOS CARDS ---
+    document.getElementById('resGiro').innerText = giroEstoque.toFixed(2) + "x";
+    document.getElementById('resCobertura').innerText = coberturaDias.toFixed(1) + " dias";
+    document.getElementById('resPontoPedido').innerText = pontoPedido.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resEstoqueMinimo').innerText = estoqueSegurancaValor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+    document.getElementById('resCustoManutencao').innerText = custoManutencaoAnual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resPctObsoleto').innerText = pctObsoleto.toFixed(1) + "% (" + estoqueObsoleto.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) + ")";
+    document.getElementById('resNivelServico').innerText = nivelServico.toFixed(1) + "%";
+    document.getElementById('resRuptura').innerText = taxaRuptura.toFixed(1) + "%";
+
+    // --- MOTOR DE INSIGHTS DE SUPPLY CHAIN ---
+    let insightsHtml = '';
+
+    // Insight de Giro e Cobertura
+    if (coberturaDias > 90) {
+        insightsHtml += `<li class="insight-danger"><strong>Estoque Excessivo (Capital Imobilizado):</strong> Sua cobertura atual é de ${coberturaDias.toFixed(0)} dias. Há excesso de mercadoria parada, elevando o risco de obsolescência e consumindo capital de giro desnecessariamente.</li>`;
+    } else if (coberturaDias < 15) {
+        insightsHtml += `<li class="insight-warning"><strong>Alerta de Ruptura Iminente:</strong> A cobertura está abaixo de 15 dias. O risco de falta de produto na prateleira (stockout) é alto se houver atrasos no Lead Time de ${leadTime} dias.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Saúde de Cobertura Equilibrada:</strong> A cobertura de ${coberturaDias.toFixed(0)} dias está em um patamar saudável para o fluxo de giro operacional.</li>`;
+    }
+
+    // Insight de Obsoleto / Capital Morto
+    if (pctObsoleto > 5) {
+        insightsHtml += `<li class="insight-danger"><strong>Alto Índice de Obsolescência:</strong> ${pctObsoleto.toFixed(1)}% do seu estoque (${estoqueObsoleto.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}) está parado ou obsoleto. Ações urgentes de liquidação ou descarte são recomendadas para liberar espaço físico e financeiro.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Baixo Índice de Perdas por Obsolescência:</strong> O volume de itens parados está controlado abaixo de 5% do valor total do inventário.</li>`;
+    }
+
+    // Insight de Custos de Manutenção
+    insightsHtml += `<li class="insight-warning"><strong>Impacto do Carrying Cost:</strong> Manter este estoque custa à empresa cerca de ${custoManutencaoAnual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})} anualmente (seguro, espaço, depreciação e capital). Otimizar lotes de compra pode reduzir essa despesa.</li>`;
+
+    // Insight de Nível de Serviço e Ruptura
+    if (taxaRuptura > 4) {
+        insightsHtml += `<li class="insight-danger"><strong>Nível de Serviço Crítico:</strong> A taxa de ruptura de ${taxaRuptura}% indica perda de vendas e frustração do cliente final. Revise o estoque de segurança e a assertividade das previsões de demanda.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Bom Nível de Atendimento:</strong> Nível de serviço em ${nivelServico.toFixed(1)}%, demonstrando boa disponibilidade de produtos para o mercado.</li>`;
+    }
+
+    document.getElementById('biInsights').innerHTML = insightsHtml;
+    document.getElementById('biDashboard').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

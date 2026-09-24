@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestão de Atualização de Preços</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
+            <div class="p-5 text-xl font-bold tracking-wider border-b border-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-tags text-blue-500"></i>
+                <span>PriceManager</span>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-box"></i> Produtos
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-file-excel"></i> Importar/Exportar
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-gear"></i> Configurações
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-800 text-sm text-slate-500">
+                v2.4.0 - Enterprise
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
+                <h1 class="text-xl font-bold text-gray-800">Gestão de Atualização de Preços</h1>
+                <div class="flex items-center gap-4">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Novo Reajuste
+                    </button>
+                    <div class="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-700">
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Body -->
+            <main class="p-6 space-y-6">
+                
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Total de Produtos</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">12.480</h3>
+                            </div>
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                                <i class="fa-solid fa-boxes-stacked text-lg"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs text-green-600 font-semibold mt-3 inline-block">+120 novos este mês</span>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Preços Atualizados (Mês)</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">1.432</h3>
+                            </div>
+                            <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+                                <i class="fa-solid fa-check-double text-lg"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs text-green-600 font-semibold mt-3 inline-block">98% aplicados com sucesso</span>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Pendências de Aprovação</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">45</h3>
+                            </div>
+                            <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs text-amber-600 font-semibold mt-3 inline-block">Requer atenção gerencial</span>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Variação Média</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">+5.4%</h3>
+                            </div>
+                            <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                                <i class="fa-solid fa-chart-line text-lg"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs text-purple-600 font-semibold mt-3 inline-block">Base inflacionária do período</span>
+                    </div>
+                </div>
+
+                <!-- Table Section: Recent Price Updates -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800">Últimas Atualizações de Preços</h2>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Buscar produto..." class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                                    <th class="py-3 px-6">Produto / SKU</th>
+                                    <th class="py-3 px-6">Categoria</th>
+                                    <th class="py-3 px-6">Preço Antigo</th>
+                                    <th class="py-3 px-6">Novo Preço</th>
+                                    <th class="py-3 px-6">Variação</th>
+                                    <th class="py-3 px-6">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-4 px-6 font-medium text-gray-900">Notebook Gamer X1 (SKU: 9832)</td>
+                                    <td class="py-4 px-6 text-gray-500">Eletrônicos</td>
+                                    <td class="py-4 px-6">R$ 4.500,00</td>
+                                    <td class="py-4 px-6 font-bold text-gray-900">R$ 4.799,00</td>
+                                    <td class="py-4 px-6 text-green-600 font-semibold">+6.6%</td>
+                                    <td class="py-4 px-6"><span class="px-2.5 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Aprovado</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-4 px-6 font-medium text-gray-900">Cadeira Ergonômica Office (SKU: 4410)</td>
+                                    <td class="py-4 px-6 text-gray-500">Móveis</td>
+                                    <td class="py-4 px-6">R$ 1.200,00</td>
+                                    <td class="py-4 px-6 font-bold text-gray-900">R$ 1.150,00</td>
+                                    <td class="py-4 px-6 text-red-600 font-semibold">-4.1%</td>
+                                    <td class="py-4 px-6"><span class="px-2.5 py-1 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full">Pendente</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-4 px-6 font-medium text-gray-900">Monitor Ultrawide 29" (SKU: 1102)</td>
+                                    <td class="py-4 px-6 text-gray-500">Eletrônicos</td>
+                                    <td class="py-4 px-6">R$ 1.600,00</td>
+                                    <td class="py-4 px-6 font-bold text-gray-900">R$ 1.750,00</td>
+                                    <td class="py-4 px-6 text-green-600 font-semibold">+9.3%</td>
+                                    <td class="py-4 px-6"><span class="px-2.5 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Aprovado</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+</body>
+</html>

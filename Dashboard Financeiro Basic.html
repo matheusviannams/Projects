@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro</title>
+    <style>
+        :root {
+            --primary-color: #1e293b;
+            --secondary-color: #3b82f6;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-box {
+            background-color: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Dashboard Financeiro</h1>
+    <p style="text-align: center; color: #64748b;">Insira os dados básicos da empresa para gerar os indicadores e insights automáticos.</p>
+
+    <!-- Formulário de Entrada -->
+    <div class="card">
+        <h2>Dados de Entrada</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="receita">Receita Bruta (Anual/Mensal)</label>
+                <input type="number" id="receita" value="1200000" required>
+            </div>
+            <div class="form-group">
+                <label for="cmv">CMV (Custo das Mercadorias Vendidas)</label>
+                <input type="number" id="cmv" value="600000" required>
+            </div>
+            <div class="form-group">
+                <label for="ebit">EBIT (Lucro Operacional)</label>
+                <input type="number" id="ebit" value="250000" required>
+            </div>
+            <div class="form-group">
+                <label for="depreciacao">Depreciação e Amortização</label>
+                <input type="number" id="depreciacao" value="50000" required>
+            </div>
+            <div class="form-group">
+                <label for="clientes">Contas a Receber (Clientes)</label>
+                <input type="number" id="clientes" value="150000" required>
+            </div>
+            <div class="form-group">
+                <label for="estoques">Estoques</label>
+                <input type="number" id="estoques" value="100000" required>
+            </div>
+            <div class="form-group">
+                <label for="fornecedores">Contas a Pagar (Fornecedores)</label>
+                <input type="number" id="fornecedores" value="80000" required>
+            </div>
+        </div>
+        <button onclick="calcularIndicadores()">Gerar Indicadores e Insights</button>
+    </div>
+
+    <!-- Resultados: Indicadores -->
+    <div class="card" id="painelResultados" style="display:none;">
+        <h2>Indicadores Financeiros (CFO)</h2>
+        <div class="results-grid">
+            <div class="metric-box">
+                <div>EBITDA</div>
+                <div class="metric-value" id="valEbitda">-</div>
+            </div>
+            <div class="metric-box">
+                <div>PME (Prazo Médio Estoque)</div>
+                <div class="metric-value" id="valPme">-</div>
+            </div>
+            <div class="metric-box">
+                <div>PMR (Prazo Médio Recebimento)</div>
+                <div class="metric-value" id="valPmr">-</div>
+            </div>
+            <div class="metric-box">
+                <div>PMP (Prazo Médio Pagamento)</div>
+                <div class="metric-value" id="valPmp">-</div>
+            </div>
+            <div class="metric-box" style="border-left-color: #ef4444;">
+                <div>CCC (Ciclo de Caixa)</div>
+                <div class="metric-value" id="valCcc">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Estratégicos -->
+    <div class="card" id="painelInsights" style="display:none;">
+        <h2>Insights Estratégicos para a Gestão</h2>
+        <ul id="listaInsights">
+            <!-- Inserido via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    function calcularIndicadores() {
+        // Capturar valores
+        const receita = parseFloat(document.getElementById('receita').value) || 0;
+        const cmv = parseFloat(document.getElementById('cmv').value) || 0;
+        const ebit = parseFloat(document.getElementById('ebit').value) || 0;
+        const depreciacao = parseFloat(document.getElementById('depreciacao').value) || 0;
+        const clientes = parseFloat(document.getElementById('clientes').value) || 0;
+        const estoques = parseFloat(document.getElementById('estoques').value) || 0;
+        const fornecedores = parseFloat(document.getElementById('fornecedores').value) || 0;
+
+        // Cálculos baseados em base anual (365 dias)
+        const ebitda = ebit + depreciacao;
+        
+        // Prazos (PME, PMR, PMP)
+        const pme = cmv > 0 ? (estoques / cmv) * 365 : 0;
+        const pmr = receita > 0 ? (clientes / receita) * 365 : 0;
+        const pmp = cmv > 0 ? (fornecedores / cmv) * 365 : 0;
+        
+        // Ciclo de Conversão de Caixa (CCC) = PME + PMR - PMP
+        const ccc = pme + pmr - pmp;
+
+        // Exibir valores no HTML
+        document.getElementById('valEbitda').innerText = ebitda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('valPme').innerText = pme.toFixed(1) + ' dias';
+        document.getElementById('valPmr').innerText = pmr.toFixed(1) + ' dias';
+        document.getElementById('valPmp').innerText = pmp.toFixed(1) + ' dias';
+        document.getElementById('valCcc').innerText = ccc.toFixed(1) + ' dias';
+
+        // Gerar os Insights baseados nos dados
+        let insights = [];
+        const margemEbitda = receita > 0 ? (ebitda / receita) * 100 : 0;
+
+        // Insight 1: Sobre o EBITDA
+        insights.push(`<li><strong>1. Geração de Caixa Operacional (EBITDA):</strong> Seu EBITDA está em ${ebitda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (${margemEbitda.toFixed(1)}% da receita). ${margemEbitda > 15 ? 'É uma margem saudável, indicando boa eficiência na operação principal.' : 'Fique atento: margens apertadas podem comprometer a capacidade de reinvestimento da empresa.'}</li>`);
+
+        // Insight 2: Sobre o Ciclo de Caixa (CCC)
+        if (ccc > 0) {
+            insights.push(`<li><strong>2. Necessidade de Capital de Giro (CCC Positivo):</strong> Seu ciclo de conversão de caixa é de <strong>${ccc.toFixed(1)} dias</strong>. Isso significa que você precisa financiar do próprio bolso ou via capital de giro o equivalente a esse período entre pagar fornecedores e receber dos clientes.</li>`);
+        } else {
+            insights.push(`<li><strong>2. Capital de Giro Otimizado (CCC Negativo):</strong> Excelente! Seu CCC é negativo (${ccc.toFixed(1)} dias), o que significa que seus fornecedores financiam a sua operação e você capta caixa antes de pagar seus custos.</li>`);
+        }
+
+        // Insight 3: Giro de Estoques vs Prazo de Pagamento
+        if (pme > pmp) {
+            insights.push(`<li><strong>3. Descasamento de Estoque e Fornecedores:</strong> Você leva <strong>${pme.toFixed(1)} dias</strong> para vender seus estoques, mas paga seus fornecedores em <strong>${pmp.toFixed(1)} dias</strong>. Essa pressão exige injeção de caixa antecipada. Tente renegociar prazos maiores com fornecedores ou acelerar as vendas.</li>`);
+        } else {
+            insights.push(`<li><strong>3. Equilíbrio Saudável de Prazos:</strong> Seus fornecedores financiam seus estoques com folga (PMP maior que PME), o que protege a liquidez de curto prazo da companhia.</li>`);
+        }
+
+        // Insight 4: Gestão de Contas a Receber (PMR)
+        insights.push(`<li><strong>4. Eficiência de Cobrança (PMR):</strong> O prazo médio de recebimento dos clientes está em <strong>${pmr.toFixed(1)} dias</strong>. Monitore este indicador de perto para evitar picos de inadimplência e avalie oferecer descontos para pagamentos à vista se precisar de liquidez imediata.</li>`);
+
+        // Insight 5: Saúde da Margem Operacional
+        insights.push(`<li><strong>5. Robustez do Lucro Operacional:</strong> A relação entre o EBIT e o EBITDA demonstra o quanto o peso da depreciação e amortização afeta seu resultado final, ajudando a planejar investimentos futuros em imobilizado.</li>`);
+
+        // Exibir painéis
+        document.getElementById('painelResultados').style.display = 'block';
+        document.getElementById('painelInsights').style.display = 'block';
+        document.getElementById('listaInsights').innerHTML = insights.join('');
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Executivo de Pricing & Inteligência Tributária</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #eef2f3; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 6px 12px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        h1 { color: #1e3799; font-size: 22px; text-align: center; border-bottom: 3px solid #4a69bd; padding-bottom: 12px; margin-top: 0; }
+        .section-title { font-weight: bold; color: #38ada8; font-size: 14px; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        label { display: block; margin-top: 8px; font-weight: bold; color: #2c3e50; font-size: 12px; }
+        select, input { width: 100%; padding: 8px; margin-top: 3px; border: 1px solid #dcdde1; border-radius: 4px; box-sizing: border-box; font-size: 13px; }
+        .row { display: flex; gap: 12px; }
+        .col { flex: 1; }
+        button { margin-top: 25px; width: 100%; padding: 14px; background-color: #38ada8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background-color: #079992; }
+        .result { margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-left: 6px solid #38ada8; border-radius: 6px; }
+        .result p { margin: 8px 0; font-size: 14px; color: #2f3640; }
+        .bold { font-weight: bold; }
+        .alert-box { margin-top: 15px; padding: 10px; border-radius: 4px; font-weight: bold; text-align: center; font-size: 13px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Painel Executivo de Pricing & Inteligência Tributária</h1>
+        
+        <div class="section-title">1. Contexto e Classificação do Item</div>
+        <div class="row">
+            <div class="col">
+                <label for="curva">Curva ABC / Criticidade:</label>
+                <select id="curva" onchange="calculate()">
+                    <option value="A">Curva A (Alto Giro / Foco em Tráfego)</option>
+                    <option value="B" selected>Curva B (Giro Moderado)</option>
+                    <option value="C">Curva C (Cauda Longa / Alta Margem)</option>
+                </select>
+            </div>
+            <div class="col">
+                <label for="pf">Custo de Aquisição Bruto (PF - R$):</label>
+                <input type="number" id="pf" step="0.01" value="50.00" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="section-title">2. Engenharia Tributária (Carga Fiscal Efetiva)</div>
+        <div class="row">
+            <div class="col">
+                <label for="icms">ICMS Normal (%):</label>
+                <input type="number" id="icms" step="0.01" value="18.00" oninput="calculate()">
+            </div>
+            <div class="col">
+                <label for="st">ICMS-ST (% Efetivo):</label>
+                <input type="number" id="st" step="0.01" value="0.00" placeholder="Se > 0, anula ICMS" oninput="calculate()">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label for="pis">PIS (%):</label>
+                <input type="number" id="pis" step="0.01" value="1.65" oninput="calculate()">
+            </div>
+            <div class="col">
+                <label for="cofins">COFINS (%):</label>
+                <input type="number" id="cofins" step="0.01" value="7.60" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="section-title">3. Parâmetros Comerciais & Concorrência</div>
+        <div class="row">
+            <div class="col">
+                <label for="markup">Markup Alvo (%):</label>
+                <input type="number" id="markup" step="0.01" value="35.00" oninput="calculate()">
+            </div>
+            <div class="col">
+                <label for="pmc">PMC - Preço da Concorrência (R$):</label>
+                <input type="number" id="pmc" step="0.01" value="75.00" oninput="calculate()">
+            </div>
+        </div>
+
+        <button onclick="calculate()">Processar Simulação Executiva</button>
+
+        <div id="res" class="result" style="display:none;">
+            <p>Carga Tributária Incidentes: <span id="resTributos" class="bold"></span></p>
+            <p>Custo Líquido / Efetivo: <span id="resCustoLiquido" class="bold"></span></p>
+            <hr style="border:0; border-top:1px solid #dcdde1; margin:12px 0;">
+            <p>Preço de Venda Sugerido (Técnico/Markup): <span id="resVendaSugerido" class="bold" style="color: #2c3e50;"></span></p>
+            <p>Preço de Venda Psicológico Recomendado (,99): <span id="resVendaPsicologico" class="bold" style="font-size: 16px; color: #e84118;"></span></p>
+            <hr style="border:0; border-top:1px solid #dcdde1; margin:12px 0;">
+            <p>Margem de Contribuição Real sobre a Venda: <span id="resMargem" class="bold" style="color: #4cd137;"></span></p>
+            <p>Posicionamento vs. Concorrência (PMC): <span id="resPosicaoConcorrencia" class="bold"></span></p>
+            
+            <div id="alertBox" class="alert-box"></div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const curva = document.getElementById('curva').value;
+            const pf = parseFloat(document.getElementById('pf').value) || 0;
+            const icms = parseFloat(document.getElementById('icms').value) || 0;
+            const st = parseFloat(document.getElementById('st').value) || 0;
+            const pis = parseFloat(document.getElementById('pis').value) || 0;
+            const cofins = parseFloat(document.getElementById('cofins').value) || 0;
+            const markup = parseFloat(document.getElementById('markup').value) || 0;
+            const pmc = parseFloat(document.getElementById('pmc').value) || 0;
+
+            // Tratamento fiscal rigido
+            let cargaTributaria = (st > 0) ? (st + pis + cofins) : (icms + pis + cofins);
+            
+            // Custo Efetivo descontando os créditos tributários recuperáveis (simulação analítica avançada)
+            let fatorCredito = (100 - cargaTributaria) / 100;
+            let custoLiquido = pf * (fatorCredito > 0 ? fatorCredito : 1);
+
+            // Preço base por Markup
+            let pvSugerido = pf * (1 + (markup / 100));
+            
+            // Preço Psicológico
+            let pvPsicologico = Math.floor(pvSugerido) + 0.99;
+            if (pvPsicologico <= pf) pvPsicologico = Math.ceil(pvSugerido) + 0.99;
+
+            // Margem real
+            let margemReal = pvPsicologico > 0 ? ((pvPsicologico - pf) / pvPsicologico) * 100 : 0;
+
+            // Comparativo de Concorrência
+            let diffPmc = pmc > 0 ? ((pvPsicologico - pmc) / pmc) * 100 : 0;
+            let textoConcorrencia = "";
+            if (pmc > 0) {
+                if (diffPmc < 0) {
+                    textoConcorrencia = `${Math.abs(diffPmc).toFixed(2)}% mais barato que a concorrência (Competitivo)`;
+                } else if (diffPmc === 0) {
+                    textoConcorrencia = `Alinhado exatamente ao preço da concorrência`;
+                } else {
+                    textoConcorrencia = `${diffPmc.toFixed(2)}% mais caro que a concorrência (Atenção ao giro!)`;
+                }
+            } else {
+                textoConcorrencia = "PMC não informado";
+            }
+
+            // Alertas executivos inteligentes
+            let alertBox = document.getElementById('alertBox');
+            let alertText = "";
+            let alertBg = "";
+
+            if (curva === 'A' && margemReal < 18) {
+                alertText = "⚠️ ALERTA ESTRATÉGICO: Item Curva A com margem baixa. Garanta que o alto giro compense o fluxo de caixa.";
+                alertBg = "#fbc531"; alertBox.style.color = "#7f8c8d";
+            } else if (diffPmc > 5 && curva === 'A') {
+                alertText = "🚨 RISCO DE PERDA DE CLIENTES: Seu preço está acima da concorrência em um item crítico de fluxo (Curva A).";
+                alertBg = "#e84118"; alertBox.style.color = "#ffffff";
+            } else {
+                alertText = "✅ SAÚDE DE PRECIFICAÇÃO: Parâmetros alinhados com a estratégia da Curva e tributação.";
+                alertBg = "#4cd137"; alertBox.style.color = "#ffffff";
+            }
+
+            alertBox.innerText = alertText;
+            alertBox.style.backgroundColor = alertBg;
+            alertBox.style.display = "block";
+
+            // Exibição dos resultados
+            document.getElementById('resTributos').innerText = cargaTributaria.toFixed(2) + '% ' + (st > 0 ? '(Com ST)' : '(Tributação Normal)');
+            document.getElementById('resCustoLiquido').innerText = 'R$ ' + custoLiquido.toFixed(2);
+            document.getElementById('resVendaSugerido').innerText = 'R$ ' + pvSugerido.toFixed(2);
+            document.getElementById('resVendaPsicologico').innerText = 'R$ ' + pvPsicologico.toFixed(2);
+            document.getElementById('resMargem').innerText = margemReal.toFixed(2) + '%';
+            document.getElementById('resPosicaoConcorrencia').innerText = textoConcorrencia;
+            document.getElementById('res').style.display = 'block';
+        }
+
+        calculate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitura Analítica de Nuvem/Diretório Local</title>
+    <!-- Importando o Chart.js via CDN segura -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f8f9fa; 
+            color: #333; 
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+        }
+        h2 { 
+            color: #2c3e50; 
+            border-bottom: 2px solid #007bff; 
+            padding-bottom: 10px; 
+        }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            font-size: 15px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        #contador { 
+            margin: 15px 0; 
+            font-weight: 600; 
+            color: #555; 
+        }
+        .charts-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            margin-top: 20px; 
+        }
+        .chart-card { 
+            background: #fff; 
+            border: 1px solid #eee; 
+            padding: 10px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); 
+            height: 240px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        h3 { 
+            font-size: 13px; 
+            color: #7f8c8d; 
+            margin-bottom: 5px; 
+            text-align: center;
+        }
+        canvas { 
+            max-height: 180px !important; 
+            width: 100% !important;
+        }
+        .table-container { 
+            max-height: 250px; 
+            overflow-y: auto; 
+            margin-top: 25px; 
+            border-top: 1px solid #eee; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+        }
+        th { 
+            background-color: #f1f3f5; 
+            color: #495057; 
+            padding: 8px; 
+            position: sticky; 
+            top: 0; 
+            text-align: left;
+        }
+        td { 
+            padding: 6px; 
+            border-bottom: 1px solid #eee; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Leitura Analítica de Nuvem/Diretório Local</h2>
+    <p>Selecione a pasta para iniciar a varredura segura e gerar o painel estatístico:</p>
+    
+    <button id="btnSelecionar">Selecionar Pasta</button>
+    <div id="contador"></div>
+
+    <!-- Grid de Gráficos Reduzidos -->
+    <div class="charts-grid" id="painelGraficos" style="display:none;">
+        <div class="chart-card">
+            <h3>Arquivos por Extensão (Qtd)</h3>
+            <canvas id="graficoTipos"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Top Extensões (Barras)</h3>
+            <canvas id="graficoBarrasTipos"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Tamanho (MB) por Tipo</h3>
+            <canvas id="graficoTamanho"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Modificações por Data</h3>
+            <canvas id="graficoDatas"></canvas>
+        </div>
+    </div>
+
+    <!-- Tabela de Arquivos -->
+    <div class="table-container">
+        <table id="tabelaArquivos" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Tipo</th>
+                    <th>Tamanho</th>
+                    <th>Modificado</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabela"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const btnSelecionar = document.getElementById('btnSelecionar');
+    const tabela = document.getElementById('tabelaArquivos');
+    const corpoTabela = document.getElementById('corpoTabela');
+    const contador = document.getElementById('contador');
+    const painelGraficos = document.getElementById('painelGraficos');
+    let charts = {};
+
+    function formatarTamanho(bytes) {
+        if (bytes === 0 || isNaN(bytes)) return '0 Bytes';
+        const k = 1024;
+        const tamanhos = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + tamanhos[i];
+    }
+
+    function obterExtensao(nome) {
+        if (!nome || !nome.includes('.')) return 'Outros';
+        const partes = nome.split('.');
+        return partes.length > 1 ? '.' + partes.pop().toLowerCase() : 'Outros';
+    }
+
+    btnSelecionar.addEventListener('click', async () => {
+        try {
+            // Verificação de suporte do navegador
+            if (!window.showDirectoryPicker) {
+                alert('Seu navegador não suporta a API de leitura de diretórios. Use o Google Chrome ou Microsoft Edge atualizados.');
+                return;
+            }
+
+            const handle = await window.showDirectoryPicker();
+            corpoTabela.innerHTML = '';
+            let arquivosDados = [];
+            let statsCount = {};
+            let statsSize = {};
+            let statsDatas = {};
+            let total = 0;
+
+            contador.textContent = 'Lendo diretório de forma segura...';
+
+            for await (const entry of handle.values()) {
+                if (entry.kind === 'file') {
+                    try {
+                        const file = await entry.getFile();
+                        total++;
+                        const ext = obterExtensao(file.name);
+                        const mb = (file.size || 0) / (1024 * 1024);
+                        const dataStr = file.lastModified ? new Date(file.lastModified).toISOString().split('T')[0] : 'Desconhecida';
+                        const dataModFmt = file.lastModified ? new Date(file.lastModified).toLocaleDateString('pt-BR') : 'N/A';
+                        
+                        arquivosDados.push({ 
+                            nome: file.name, 
+                            ext, 
+                            tamStr: formatarTamanho(file.size), 
+                            mod: dataModFmt 
+                        });
+                        
+                        statsCount[ext] = (statsCount[ext] || 0) + 1;
+                        statsSize[ext] = (statsSize[ext] || 0) + mb;
+                        statsDatas[dataStr] = (statsDatas[dataStr] || 0) + 1;
+                    } catch (fileErr) {
+                        console.warn('Não foi possível ler um arquivo específico:', fileErr);
+                    }
+                }
+            }
+
+            if (total === 0) {
+                contador.textContent = 'A pasta selecionada está vazia.';
+                tabela.style.display = 'none';
+                painelGraficos.style.display = 'none';
+                return;
+            }
+
+            tabela.style.display = 'table';
+            arquivosDados.forEach(arq => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${arq.nome}</td><td>${arq.ext}</td><td>${arq.tamStr}</td><td>${arq.mod}</td>`;
+                corpoTabela.appendChild(tr);
+            });
+
+            contador.textContent = `Análise concluída com sucesso: ${total} arquivo(s) mapeado(s).`;
+            painelGraficos.style.display = 'grid';
+            gerarGraficos(statsCount, statsSize, statsDatas);
+
+        } catch (e) {
+            if (e.name === 'AbortError') {
+                contador.textContent = 'Seleção de pasta cancelada pelo usuário.';
+            } else {
+                console.error(e);
+                contador.textContent = 'Ocorreu um erro ao processar a pasta.';
+            }
+        }
+    });
+
+    function gerarGraficos(count, size, dates) {
+        // Limpa instâncias anteriores para evitar sobreposição de memória
+        Object.values(charts).forEach(c => c.destroy());
+        
+        const cores = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6610f2'];
+        const opts = { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } } 
+        };
+        
+        charts.c1 = new Chart(document.getElementById('graficoTipos'), { 
+            type: 'doughnut', 
+            data: { labels: Object.keys(count), datasets: [{ data: Object.values(count), backgroundColor: cores }] }, 
+            options: opts 
+        });
+        
+        charts.c2 = new Chart(document.getElementById('graficoBarrasTipos'), { 
+            type: 'bar', 
+            data: { labels: Object.keys(count), datasets: [{ data: Object.values(count), backgroundColor: '#17a2b8' }] }, 
+            options: opts 
+        });
+        
+        charts.c3 = new Chart(document.getElementById('graficoTamanho'), { 
+            type: 'pie', 
+            data: { labels: Object.keys(size), datasets: [{ data: Object.values(size).map(v => v.toFixed(2)), backgroundColor: cores }] }, 
+            options: opts 
+        });
+        
+        charts.c4 = new Chart(document.getElementById('graficoDatas'), { 
+            type: 'bar', 
+            data: { labels: Object.keys(dates).sort(), datasets: [{ data: Object.values(dates), backgroundColor: '#6c757d' }] }, 
+            options: opts 
+        });
+    }
+</script>
+
+</body>
+</html>

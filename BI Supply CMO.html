@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard SCM & CMO - Logística Inteligente</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-truck-ramp-box text-2xl text-indigo-400"></i>
+                <h1 class="text-xl font-bold tracking-wide">SCM Intelligence | <span class="text-indigo-300 font-light">Gestão CMO Preditiva</span></h1>
+            </div>
+            <span class="text-xs bg-indigo-800 px-3 py-1 rounded-full text-indigo-200">Painel Operacional v3.0</span>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 space-y-8">
+
+        <!-- Formulário de Entrada -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-file-pen text-indigo-600"></i> Parâmetros da Carga para Cálculo Inteligente
+            </h2>
+            <form id="logisticsForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Produto</label>
+                    <input type="text" id="produto" required value="Vacinas e Imunobiológicos" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Produto</label>
+                    <select id="tipoProduto" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="Geral">Carga Geral</option>
+                        <option value="Inflamavel">Inflamável / Perigosa</option>
+                        <option value="TempControlada" selected>Temperatura Controlada (Frigorificada)</option>
+                        <option value="Fragil">Frágil / Alto Valor</option>
+                        <option value="Granel">Granel</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Carga</label>
+                    <select id="tipoCarga" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="Fracionada">Fracionada</option>
+                        <option value="Lotação" selected>Lotação (FTL)</option>
+                        <option value="Container">Containers</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Volume ($m^3$)</label>
+                    <input type="number" step="0.01" id="volume" required value="35.0" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Peso Bruto (kg)</label>
+                    <input type="number" step="0.01" id="pesoBruto" required value="12000" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Peso Líquido (kg)</label>
+                    <input type="number" step="0.01" id="pesoLiquido" required value="11500" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Origem (UF)</label>
+                    <input type="text" id="origemUF" maxlength="2" required value="SP" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 uppercase focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Destino (UF)</label>
+                    <input type="text" id="destinoUF" maxlength="2" required value="PR" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 uppercase focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="md:col-span-4 flex justify-end mt-2">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm transition shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Calcular Indicadores e Sugerir Veículo
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Dashboard Analytics Cards (Com os resultados estimados) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Card 1: Veículo Indicado -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-medium uppercase">Veículo Mais Indicado</p>
+                    <h3 id="cardVeiculo" class="text-lg font-bold text-indigo-900 mt-1">Carreta Refr. 4ixos</h3>
+                    <p id="cardVeiculoSub" class="text-xs text-slate-400 mt-0.5">Capacidade adequada ao peso/volume</p>
+                </div>
+                <div class="bg-indigo-50 text-indigo-600 p-4 rounded-xl"><i class="fa-solid fa-truck-front text-2xl"></i></div>
+            </div>
+
+            <!-- Card 2: Frete Estimado -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-medium uppercase">Valor Estimado de Frete</p>
+                    <h3 id="cardFrete" class="text-xl font-bold text-slate-800 mt-1">R$ 0,00</h3>
+                    <p id="cardFreteSub" class="text-xs text-emerald-600 mt-0.5">Baseado em tabela CMO</p>
+                </div>
+                <div class="bg-emerald-50 text-emerald-600 p-4 rounded-xl"><i class="fa-solid fa-file-invoice-dollar text-2xl"></i></div>
+            </div>
+
+            <!-- Card 3: Desvio de Temperatura Estimado -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 font-medium uppercase">Desvio de Temp. Estimado</p>
+                    <h3 id="cardDesvio" class="text-xl font-bold text-slate-800 mt-1">0.0 °C</h3>
+                    <p id="cardDesvioSub" class="text-xs text-slate-400 mt-0.5">Risco controlado</p>
+                </div>
+                <div id="cardDesvioIconBg" class="bg-teal-50 text-teal-600 p-4 rounded-xl"><i class="fa-solid fa-temperature-arrow-up text-2xl"></i></div>
+            </div>
+
+        </div>
+
+        <!-- Gráficos de Apoio -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-semibold text-slate-700 mb-4">Composição de Peso (Líquido vs Tara)</h3>
+                <div class="relative h-64">
+                    <canvas id="pesoChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-semibold text-slate-700 mb-4">Projeção de Custos Logísticos</h3>
+                <div class="relative h-64">
+                    <canvas id="rotaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10 Insights de Supply Chain Management (Foco CMO) -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> 10 Insights Estratégicos de SCM para Contratos Terceirizados (CMO)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">1. Alocação Inteligente de Frota Terceirizada</h4>
+                    <p class="text-xs text-slate-600">A escolha automatizada do veículo evita subutilização de espaço e elimina o pagamento de capacidade ociosa no contrato CMO.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">2. Mitigação de Riscos em Cadeia Fria</h4>
+                    <p class="text-xs text-slate-600">O monitoramento preditivo do desvio térmico resguarda o SLA contra perdas de lotes inteiros de produtos sensíveis.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">3. SLA e OTIF (On-Time In-Full) por Rota</h4>
+                    <p class="text-xs text-slate-600">Vincule parte da remuneração do CMO ao cumprimento rigoroso dos prazos e integridade das entregas.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">4. Auditoria Preventiva de Fretes</h4>
+                    <p class="text-xs text-slate-600">Utilize estimativas algorítmicas de frete para auditar faturas do operador e barrar cobranças fora do acordado.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">5. Consolidação de Cargas Fracionadas</h4>
+                    <p class="text-xs text-slate-600">Identifique fluxos frequentes para transformar envios fracionados em lotações completas (FTL).</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">6. Bonificações por Eficiência (Gainsharing)</h4>
+                    <p class="text-xs text-slate-600">Estruture metas conjuntas de redução de custos logísticos para engajar o operador parceiro.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">7. Visibilidade Total via Control Tower</h4>
+                    <p class="text-xs text-slate-600">Integre APIs com o CMO para eliminar pontos cegos e prever desvios operacionais.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">8. Gestão de Capacidade Dedicada vs. Spot</h4>
+                    <p class="text-xs text-slate-600">Equilibre frotas fixas com o mercado spot para evitar ociosidade na baixa demanda.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">9. Eficiência Fiscal Interestadual</h4>
+                    <p class="text-xs text-slate-600">Monitore rotas entre UFs para otimizar centros de distribuição e reduzir impactos de ICMS.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 class="font-semibold text-slate-800 text-sm mb-1">10. Automatização Contábil de Faturas</h4>
+                    <p class="text-xs text-slate-600">Cruze automaticamente os dados reais de peso, rota e veículo com a tabela do contrato CMO.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Script de Lógica e IA Preditiva Simulada -->
+    <script>
+        let pesoChartInstance = null;
+        let rotaChartInstance = null;
+
+        function calcularIndicadores(data) {
+            // 1. Indicação de Veículo Baseada em Peso e Tipo
+            let veiculo = "Truck Médio (14t)";
+            if (data.pesoBruto > 23000) {
+                veiculo = "Carreta LS 6x2 (30t)";
+            } else if (data.pesoBruto > 15000) {
+                veiculo = "Carreta Refrigorada 4x2";
+            } else if (data.tipoCarga === 'Fracionada') {
+                data.tipoProduto === 'TempControlada' ? veiculo = "Van Refrigerada" : veiculo = "HR / VUC";
+            } else if (data.tipoProduto === 'TempControlada') {
+                veiculo = "Truck Refrigerado";
+            }
+
+            // 2. Estimativa de Frete (Simulação baseada em peso + fator de periculosidade/temperatura)
+            let baseKm = 500; // Distância média estimada simulada entre UFs
+            let custoPorKgKm = 0.15;
+            if (data.tipoProduto === 'TempControlada') custoPorKgKm = 0.22;
+            if (data.tipoProduto === 'Inflamavel') custoPorKgKm = 0.25;
+            
+            let freteEstimado = (data.pesoBruto * custoPorKgKm) + (baseKm * 4.5);
+
+            // 3. Estimativa de Desvio de Temperatura
+            let desvioTemp = 0.0;
+            if (data.tipoProduto === 'TempControlada') {
+                // Simula um desvio leve aleatório ou controlado baseado no volume
+                desvioTemp = +(Math.random() * 0.8).toFixed(1);
+            } else if (data.tipoProduto === 'Inflamavel') {
+                desvioTemp = +(Math.random() * 1.5).toFixed(1);
+            }
+
+            return {
+                veiculoIdeal: veiculo,
+                frete: freteEstimado,
+                desvio: desvioTemp
+            };
+        }
+
+        function updateDashboard(formData) {
+            const resultados = calcularIndicadores(formData);
+
+            // Atualizar Cards da Resposta Preditiva
+            document.getElementById('cardVeiculo').innerText = resultados.veiculoIdeal;
+            document.getElementById('cardFrete').innerText = 'R$ ' + resultados.frete.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            const desvioEl = document.getElementById('cardDesvio');
+            const iconBgEl = document.getElementById('cardDesvioIconBg');
+            desvioEl.innerText = (resultados.desvio > 0 ? '+' : '') + resultados.desvio.toFixed(1) + ' °C';
+            
+            if (resultados.desvio > 1.0) {
+                iconBgEl.className = "bg-rose-50 text-rose-600 p-4 rounded-xl";
+                iconBgEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-2xl"></i>';
+                document.getElementById('cardDesvioSub').innerText = "Alerta: Atenção ao SLA do CMO";
+            } else {
+                iconBgEl.className = "bg-teal-50 text-teal-600 p-4 rounded-xl";
+                iconBgEl.innerHTML = '<i class="fa-solid fa-temperature-arrow-up text-2xl"></i>';
+                document.getElementById('cardDesvioSub').innerText = "Dentro dos parâmetros aceitáveis";
+            }
+
+            renderCharts(formData, resultados.frete);
+        }
+
+        function renderCharts(data, frete) {
+            // Gráfico de Peso
+            const ctxPeso = document.getElementById('pesoChart').getContext('2d');
+            if (pesoChartInstance) pesoChartInstance.destroy();
+            pesoChartInstance = new Chart(ctxPeso, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Peso Líquido', 'Tara (Embalagem)'],
+                    datasets: [{
+                        data: [data.pesoLiquido, Math.max(0, data.pesoBruto - data.pesoLiquido)],
+                        backgroundColor: ['#4f46e5', '#cbd5e1']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Gráfico de Custos
+            const ctxRota = document.getElementById('rotaChart').getContext('2d');
+            if (rotaChartInstance) rotaChartInstance.destroy();
+            rotaChartInstance = new Chart(ctxRota, {
+                type: 'bar',
+                data: {
+                    labels: [`Rota ${data.origem} ➔ ${data.destino}`],
+                    datasets: [{
+                        label: 'Frete Estimado (R$)',
+                        data: [frete],
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        document.getElementById('logisticsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = {
+                produto: document.getElementById('produto').value,
+                tipoProduto: document.getElementById('tipoProduto').value,
+                tipoCarga: document.getElementById('tipoCarga').value,
+                volume: parseFloat(document.getElementById('volume').value),
+                pesoBruto: parseFloat(document.getElementById('pesoBruto').value),
+                pesoLiquido: parseFloat(document.getElementById('pesoLiquido').value),
+                origem: document.getElementById('origemUF').value.toUpperCase(),
+                destino: document.getElementById('destinoUF').value.toUpperCase()
+            };
+            updateDashboard(formData);
+        });
+
+        // Inicializar com dados padrão ao carregar
+        window.onload = function() {
+            document.getElementById('logisticsForm').dispatchEvent(new Event('submit'));
+        };
+    </script>
+</body>
+</html>

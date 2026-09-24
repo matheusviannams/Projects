@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Taxas e Impostos de Imóveis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            background: #fff;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #219653;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            background: #eef9f1;
+            border-left: 5px solid #27ae60;
+            border-radius: 4px;
+            display: none;
+        }
+        .hidden {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #d4edda;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Simulador de Custos de Aquisição</h2>
+    
+    <div class="form-group">
+        <label for="tipoCompra">Tipo de Compra:</label>
+        <select id="tipoCompra">
+            <option value="terceiro">Compra de Terceiro (Imóvel Pronto)</option>
+            <option value="construtora">Compra de Construtora (Na Planta/Novo)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="valorAquisicao">Valor da Aquisição (R$):</label>
+        <input type="number" id="valorAquisicao" placeholder="Ex: 500000" min="0">
+    </div>
+
+    <div class="form-group">
+        <label for="valorEntrada">Valor da Entrada (R$):</label>
+        <input type="number" id="valorEntrada" placeholder="Ex: 100000" min="0">
+    </div>
+
+    <div class="form-group">
+        <label for="financiado">O imóvel será financiado?</label>
+        <select id="financiado" onchange="toggleFinanciamento()">
+            <option value="nao">Não (À Vista)</option>
+            <option value="sim">Sim</option>
+        </select>
+    </div>
+
+    <!-- Campos Dinâmicos de Financiamento -->
+    <div id="camposFinanciamento" class="hidden">
+        <div class="form-group">
+            <label for="taxaJuros">Taxa de Juros Anual (%):</label>
+            <input type="number" id="taxaJuros" step="0.1" placeholder="Ex: 9.5">
+        </div>
+
+        <div class="form-group">
+            <label for="banco">Banco / Instituição Financeira:</label>
+            <input type="text" id="banco" placeholder="Ex: Caixa, Itaú, Bradesco...">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="laudemioCheck">O imóvel possui taxa de Laudêmio? (Área de Marinha/União)</label>
+        <select id="laudemioCheck">
+            <option value="nao">Não</option>
+            <option value="sim">Sim (Aplica-se 2,5% sobre o valor)</option>
+        </select>
+    </div>
+
+    <button onclick="calcularImpostos()">Calcular Total Discriminado</button>
+
+    <!-- Resultados -->
+    <div id="resultado" class="result-box">
+        <h3>Resumo das Despesas Estimadas</h3>
+        <p id="infoFinanciamento" style="font-style: italic; color: #555;"></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item / Imposto</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ITBI (Est. 3%)</td>
+                    <td id="resItbi">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>Escritura Pública <small>(Isento se financiado)</small></td>
+                    <td id="resEscritura">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>Registro de Imóvel (RGI / Emolumentos)</td>
+                    <td id="resRgi">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>INCC Proporcional <small>(Apenas Construtora)</small></td>
+                    <td id="resIncc">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>Laudêmio <small>(Se aplicável)</small></td>
+                    <td id="resLaudemio">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>IPTU Proporcional Estimado</td>
+                    <td id="resIptu">R$ 0,00</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Custo Total Adicional</td>
+                    <td id="resTotal">R$ 0,00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleFinanciamento() {
+        const financiado = document.getElementById('financiado').value;
+        const campos = document.getElementById('camposFinanciamento');
+        if (financiado === 'sim') {
+            campos.classList.remove('hidden');
+        } else {
+            campos.classList.add('hidden');
+        }
+    }
+
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calcularImpostos() {
+        const tipoCompra = document.getElementById('tipoCompra').value;
+        const valorAquisicao = parseFloat(document.getElementById('valorAquisicao').value) || 0;
+        const valorEntrada = parseFloat(document.getElementById('valorEntrada').value) || 0;
+        const financiado = document.getElementById('financiado').value;
+        const taxaJuros = document.getElementById('taxaJuros').value;
+        const banco = document.getElementById('banco').value;
+        const possuiLaudemio = document.getElementById('laudemioCheck').value;
+
+        if (valorAquisicao <= 0) {
+            alert("Por favor, insira um valor de aquisição válido.");
+            return;
+        }
+
+        const itbi = valorAquisicao * 0.03;
+        let escritura = 0;
+        let rgi = 0;
+
+        if (financiado === 'nao') {
+            escritura = valorAquisicao * 0.007;
+            rgi = valorAquisicao * 0.006;
+        } else {
+            escritura = 0;
+            rgi = valorAquisicao * 0.006;
+        }
+
+        let incc = 0;
+        if (tipoCompra === 'construtora') {
+            const saldoDevedor = valorAquisicao - valorEntrada;
+            incc = saldoDevedor > 0 ? saldoDevedor * 0.01 : 0;
+        }
+
+        const laudemio = possuiLaudemio === 'sim' ? valorAquisicao * 0.025 : 0;
+        const iptu = valorAquisicao * 0.002;
+        const totalTaxas = itbi + escritura + rgi + incc + laudemio + iptu;
+
+        document.getElementById('resItbi').innerText = formatarMoeda(itbi);
+        document.getElementById('resEscritura').innerText = formatarMoeda(escritura);
+        document.getElementById('resRgi').innerText = formatarMoeda(rgi);
+        document.getElementById('resIncc').innerText = formatarMoeda(incc);
+        document.getElementById('resLaudemio').innerText = formatarMoeda(laudemio);
+        document.getElementById('resIptu').innerText = formatarMoeda(iptu);
+        document.getElementById('resTotal').innerText = formatarMoeda(totalTaxas);
+
+        const infoFinanc = document.getElementById('infoFinanciamento');
+        if (financiado === 'sim' && banco) {
+            infoFinanc.innerText = `Financiamento simulado via ${banco} com taxa de ${taxaJuros}% a.a. (O contrato bancário substitui o custo de Escritura do Cartório de Notas).`;
+        } else {
+            infoFinanc.innerText = "Transação sem financiamento bancário (compra à vista).";
+        }
+
+        document.getElementById('resultado').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Impostos - Mercado e Farmácia</title>
+    <!-- Incluindo Chart.js para o gráfico de pizza -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            background: #fff;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        h2 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .btn-calc {
+            background-color: #2563eb;
+            color: white;
+            flex: 2;
+        }
+        .btn-calc:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-add {
+            background-color: #10b981;
+            color: white;
+            flex: 1;
+        }
+        .btn-add:hover {
+            background-color: #059669;
+        }
+        .results-section {
+            display: none;
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 25px;
+            margin-top: 25px;
+        }
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .dashboard {
+                flex-direction: row;
+                align-items: center;
+            }
+            .summary-cards {
+                flex: 1;
+            }
+            .chart-container {
+                flex: 1;
+                max-width: 350px;
+                margin: 0 auto;
+            }
+        }
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .card-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .card-value.highlight {
+            color: #dc2626;
+        }
+        .card-value.success {
+            color: #16a34a;
+        }
+        .taxes-breakdown {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .taxes-breakdown div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .taxes-breakdown div:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Calculadora de Impostos de Consumo</h2>
+    <p class="subtitle">Adicione seus produtos de mercado ou farmácia para ver o peso real dos tributos (ICMS, IPI, PIS, COFINS)</p>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Produto / Descrição</th>
+                    <th style="width: 30%;">Categoria Tributária</th>
+                    <th style="width: 20%;">Preço Pago (R$)</th>
+                    <th style="width: 15%;">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="productRows">
+                <!-- Inicializa com 10 linhas pré-definidas para facilidade do usuário -->
+                <tr>
+                    <td><input type="text" class="prod-nome" placeholder="Ex: Arroz 5kg"></td>
+                    <td>
+                        <select class="prod-cat">
+                            <option value="cesta_basica">Cesta Básica (Reduzido)</option>
+                            <option value="mercado_geral" selected>Mercado Geral (Padrão)</option>
+                            <option value="bebida_refrigerante">Bebidas / Refrigerantes</option>
+                            <option value="higiene_pessoal">Higiene Pessoal</option>
+                            <option value="medicamento_geral">Medicamentos em Geral</option>
+                            <option value="medicamento_isento">Medicamentos Isentos/Lista Positiva</option>
+                            <option value="eletronico_bazar">Bazar / Eletrônicos</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td>
+                    <td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="prod-nome" placeholder="Ex: Feijão"></td>
+                    <td>
+                        <select class="prod-cat">
+                            <option value="cesta_basica" selected>Cesta Básica (Reduzido)</option>
+                            <option value="mercado_geral">Mercado Geral (Padrão)</option>
+                            <option value="bebida_refrigerante">Bebidas / Refrigerantes</option>
+                            <option value="higiene_pessoal">Higiene Pessoal</option>
+                            <option value="medicamento_geral">Medicamentos em Geral</option>
+                            <option value="medicamento_isento">Medicamentos Isentos/Lista Positiva</option>
+                            <option value="eletronico_bazar">Bazar / Eletrônicos</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td>
+                    <td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td>
+                </tr>
+                <!-- Adicionando mais 8 linhas vazias para totalizar as 10 solicitadas -->
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 3"></td><td><select class="prod-cat"><option value="mercado_geral">Mercado Geral (Padrão)</option><option value="cesta_basica">Cesta Básica (Reduzido)</option><option value="bebida_refrigerante">Bebidas / Refrigerantes</option><option value="higiene_pessoal">Higiene Pessoal</option><option value="medicamento_geral">Medicamentos em Geral</option><option value="eletronico_bazar">Bazar / Eletrônicos</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 4"></td><td><select class="prod-cat"><option value="mercado_geral">Mercado Geral (Padrão)</option><option value="cesta_basica">Cesta Básica (Reduzido)</option><option value="bebida_refrigerante">Bebidas / Refrigerantes</option><option value="higiene_pessoal">Higiene Pessoal</option><option value="medicamento_geral">Medicamentos em Geral</option><option value="eletronico_bazar">Bazar / Eletrônicos</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 5"></td><td><select class="prod-cat"><option value="higiene_pessoal">Higiene Pessoal</option><option value="mercado_geral">Mercado Geral (Padrão)</option><option value="cesta_basica">Cesta Básica (Reduzido)</option><option value="medicamento_geral">Medicamentos em Geral</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 6"></td><td><select class="prod-cat"><option value="medicamento_geral">Medicamentos em Geral</option><option value="mercado_geral">Mercado Geral (Padrão)</option><option value="medicamento_isento">Medicamentos Isentos</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 7"></td><td><select class="prod-cat"><option value="mercado_geral">Mercado Geral (Padrão)</option><option value="cesta_basica">Cesta Básica (Reduzido)</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 8"></td><td><select class="prod-cat"><option value="mercado_geral">Mercado Geral (Padrão)</option><option value="bebida_refrigerante">Bebidas / Refrigerantes</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 9"></td><td><select class="prod-cat"><option value="mercado_geral">Mercado Geral (Padrão)</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+                <tr><td><input type="text" class="prod-nome" placeholder="Produto 10"></td><td><select class="prod-cat"><option value="mercado_geral">Mercado Geral (Padrão)</option></select></td><td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td><td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-add" onclick="adicionarLinha()">+ Linha</button>
+        <button class="btn-calc" onclick="calcularImpostosCompra()">Calcular Nota & Impostos</button>
+    </div>
+
+    <!-- Seção de Resultados -->
+    <div id="resultsSection" class="results-section">
+        <h3>Resultado Detalhado da Compra</h3>
+        <div class="dashboard">
+            <div class="summary-cards">
+                <div class="card">
+                    <div class="card-title">Valor Total dos Produtos</div>
+                    <div class="card-value success" id="valTotalProdutos">R$ 0,00</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Carga Tributária Total Estimada</div>
+                    <div class="card-value highlight" id="valTotalImpostos">R$ 0,00</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Valor Líquido (Sem Imposto)</div>
+                    <div class="card-value" id="valLiquido">R$ 0,00</div>
+                </div>
+                
+                <div class="taxes-breakdown">
+                    <strong>Divisão por Imposto (Estimado por Dentro):</strong>
+                    <div><span>ICMS Total:</span><span id="breakdownIcms">R$ 0,00</span></div>
+                    <div><span>IPI Total:</span><span id="breakdownIpi">R$ 0,00</span></div>
+                    <div><span>PIS Total:</span><span id="breakdownPis">R$ 0,00</span></div>
+                    <div><span>COFINS Total:</span><span id="breakdownCofins">R$ 0,00</span></div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="taxChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tabela simplificada de carga tributária estimada por dentro das mercadorias no Brasil
+    const regrasTributarias = {
+        cesta_basica:        { icms: 0.07, ipi: 0.00, pis: 0.0165, cofins: 0.076 }, // Alíquota reduzida
+        mercado_geral:       { icms: 0.18, ipi: 0.00, pis: 0.0165, cofins: 0.076 }, // Alíquota padrão ICMS médio
+        bebida_refrigerante: { icms: 0.20, ipi: 0.04, pis: 0.0165, cofins: 0.076 }, // Alíquota majorada + IPI
+        higiene_pessoal:     { icms: 0.18, ipi: 0.02, pis: 0.0165, cofins: 0.076 },
+        medicamento_geral:   { icms: 0.12, ipi: 0.00, pis: 0.0210, cofins: 0.099 }, // Remédios padrão
+        medicamento_isento:  { icms: 0.00, ipi: 0.00, pis: 0.0000, cofins: 0.000 }, // Medicamentos com isenção total
+        eletronico_bazar:    { icms: 0.18, ipi: 0.10, pis: 0.0165, cofins: 0.076 }
+    };
+
+    let meuGrafico = null;
+
+    function adicionarLinha() {
+        const tbody = document.getElementById('productRows');
+        const numLinhas = tbody.rows.length + 1;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="prod-nome" placeholder="Produto ${numLinhas}"></td>
+            <td>
+                <select class="prod-cat">
+                    <option value="mercado_geral">Mercado Geral (Padrão)</option>
+                    <option value="cesta_basica">Cesta Básica (Reduzido)</option>
+                    <option value="bebida_refrigerante">Bebidas / Refrigerantes</option>
+                    <option value="higiene_pessoal">Higiene Pessoal</option>
+                    <option value="medicamento_geral">Medicamentos em Geral</option>
+                    <option value="medicamento_isento">Medicamentos Isentos</option>
+                    <option value="eletronico_bazar">Bazar / Eletrônicos</option>
+                </select>
+            </td>
+            <td><input type="number" class="prod-preco" step="0.01" min="0" placeholder="0,00"></td>
+            <td><button type="button" style="background:#ef4444; color:white; padding:5px 10px; font-size:12px;" onclick="removerLinha(this)">Excluir</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function removerLinha(btn) {
+        const row = btn.parentNode.parentNode;
+        row.parentNode.removeChild(row);
+    }
+
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calcularImpostosCompra() {
+        const rows = document.getElementById('productRows').rows;
+        
+        let totalProdutos = 0;
+        let totalIcms = 0;
+        let totalIpi = 0;
+        let totalPis = 0;
+        let totalCofins = 0;
+        let preenchidos = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const precoInput = rows[i].querySelector('.prod-preco');
+            const catSelect = rows[i].querySelector('.prod-cat');
+            
+            const preco = parseFloat(precoInput.value) || 0;
+            if (preco > 0) {
+                preenchidos++;
+                const cat = catSelect.value;
+                const regras = regrasTributarias[cat];
+                
+                totalProdutos += preco;
+                
+                // No Brasil, os tributos de consumo incidem "por dentro" do preço final na prateleira
+                totalIcms += preco * regras.icms;
+                totalIpi += preco * regras.ipi;
+                totalPis += preco * regras.pis;
+                totalCofins += preco * regras.cofins;
+            }
+        }
+
+        if (preenchidos === 0) {
+            alert('Por favor, preencha o valor de ao menos um produto da sua lista.');
+            return;
+        }
+
+        const totalImpostos = totalIcms + totalIpi + totalPis + totalCofins;
+        const valorLiquido = totalProdutos - totalImpostos;
+
+        // Atualizando textos das caixas
+        document.getElementById('valTotalProdutos').innerText = formatarMoeda(totalProdutos);
+        document.getElementById('valTotalImpostos').innerText = formatarMoeda(totalImpostos);
+        document.getElementById('valLiquido').innerText = formatarMoeda(valorLiquido);
+
+        // Atualizando detalhamento
+        document.getElementById('breakdownIcms').innerText = formatarMoeda(totalIcms);
+        document.getElementById('breakdownIpi').innerText = formatarMoeda(totalIpi);
+        document.getElementById('breakdownPis').innerText = formatarMoeda(totalPis);
+        document.getElementById('breakdownCofins').innerText = formatarMoeda(totalCofins);
+
+        // Exibir a seção
+        document.getElementById('resultsSection').style.display = 'block';
+
+        // Renderizar ou atualizar gráfico de Pizza
+        const ctx = document.getElementById('taxChart').getContext('2d');
+        
+        if (meuGrafico) {
+            meuGrafico.destroy();
+        }
+
+        meuGrafico = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Valor Líquido (Produtos)', 'Impostos Embutidos'],
+                datasets: [{
+                    data: [valorLiquido, totalImpostos],
+                    backgroundColor: ['#16a34a', '#dc2626'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += formatarMoeda(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

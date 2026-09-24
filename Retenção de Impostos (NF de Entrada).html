@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Impostos - NF de Entrada (Serviços)</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            width: 100%;
+            max-width: 650px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #0f172a;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 15px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-box {
+            margin-top: 28px;
+            border-top: 2px dashed var(--border);
+            padding-top: 20px;
+            display: none;
+        }
+
+        .result-box.active {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #0f172a;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .result-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .result-row.total {
+            font-weight: bold;
+            font-size: 17px;
+            color: var(--success);
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+
+        .info-tax {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 10px;
+            font-size: 13px;
+            color: #1e40af;
+            margin-top: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Retenção de Impostos (NF de Entrada)</h1>
+    <p class="subtitle">Cálculo de retenções na fonte para Notas Fiscais de Serviço Tomados</p>
+
+    <div class="form-group">
+        <label for="valorBruto">Valor Bruto da Nota Fiscal (R$)</label>
+        <input type="number" id="valorBruto" step="0.01" placeholder="Ex: 5000.00" required>
+    </div>
+
+    <div class="form-group">
+        <label for="tipoServico">Tipo de Serviço (Regras de Retenção)</label>
+        <select id="tipoServico">
+            <option value="limpeza">Limpeza / Conservação / Zeladoria (Sujeito a INSS)</option>
+            <option value="seguranca">Segurança / Vigilância (Sujeito a INSS)</option>
+            <option value="ti">Tecnologia da Informação / Computação</option>
+            <option value="consultoria">Consultoria / Assessoria Técnica</option>
+            <option value="engenharia">Engenharia / Arquitetura</option>
+            <option value="outros">Outros Serviços Profissionais (Sem INSS)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="municipio">Município de Prestação (Alíquota ISS)</label>
+        <select id="municipio">
+            <option value="2">Alíquota Padrão - 2%</option>
+            <option value="3">Alíquota Intermediária - 3%</option>
+            <option value="5">Alíquota Máxima - 5%</option>
+        </select>
+    </div>
+
+    <button onclick="calcularImpostos()">Calcular Retenções</button>
+
+    <div class="result-box" id="resultBox">
+        <div class="result-title">Resumo das Retenções na Fonte</div>
+        
+        <div class="result-row">
+            <span>Valor Bruto da Nota:</span>
+            <span id="resBruto">R$ 0,00</span>
+        </div>
+        
+        <div class="result-row">
+            <span>ISS Retido (<span id="txtIss">0</span>%):</span>
+            <span id="resIss">R$ 0,00</span>
+        </div>
+        
+        <div class="result-row">
+            <span>IRRF (1,5%): <br><small class="info-tax" id="infoIr"></small></span>
+            <span id="resIrrf">R$ 0,00</span>
+        </div>
+        
+        <div class="result-row">
+            <span>PCC / CSRF (4,65%): <br><small class="info-tax" id="infoPcc"></small></span>
+            <span id="resPcc">R$ 0,00</span>
+        </div>
+        
+        <div class="result-row">
+            <span>INSS Retido (11%): <br><small class="info-tax" id="infoInss"></small></span>
+            <span id="resInss">R$ 0,00</span>
+        </div>
+
+        <div class="result-row total">
+            <span>Valor Líquido a Pagar ao Prestador:</span>
+            <span id="resLiquido">R$ 0,00</span>
+        </div>
+
+        <div class="alert-info" id="alertMinimo">
+            Nota: Dispensa de retenção aplicada para valores abaixo do limite legal (IRRF < R$ 10 ou PCC em Notas ≤ R$ 215,05).
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calcularImpostos() {
+        const valorBruto = parseFloat(document.getElementById('valorBruto').value);
+        if (isNaN(valorBruto) || valorBruto <= 0) {
+            alert('Por favor, insira um valor bruto válido.');
+            return;
+        }
+
+        const tipoServico = document.getElementById('tipoServico').value;
+        const aliquotaIss = parseFloat(document.getElementById('municipio').value);
+
+        // 1. Cálculo do ISS (Retido na fonte conforme regras municipais)
+        const iss = valorBruto * (aliquotaIss / 100);
+
+        // 2. Cálculo do IRRF (Alíquota padrão para serviços profissionais é 1,5%)
+        // Dispensa de retenção se o valor calculado for igual ou inferior a R$ 10,00
+        let irrf = valorBruto * 0.015;
+        let msgIr = "Retido normalmente";
+        if (irrf <= 10) {
+            irrf = 0;
+            msgIr = "Dispensado (Valor ≤ R$ 10,00)";
+        }
+
+        // 3. Cálculo do PCC / CSRF (PIS 0,65%, COFINS 3%, CSLL 1% = 4,65%)
+        // Dispensa de retenção se o valor da nota for igual ou inferior a R$ 215,05 (imposto ≤ R$ 10)
+        let pcc = valorBruto * 0.0465;
+        let msgPcc = "Retido normalmente";
+        if (valorBruto <= 215.05) {
+            pcc = 0;
+            msgPcc = "Dispensado (NF-e ≤ R$ 215,05)";
+        }
+
+        // 4. Cálculo do INSS (11% sobre o valor bruto para cessão de mão de obra)
+        let inss = 0;
+        let msgInss = "Não aplicável para este serviço";
+        if (tipoServico === 'limpeza' || tipoServico === 'seguranca') {
+            inss = valorBruto * 0.11;
+            msgInss = "Retido (11% Mão de Obra)";
+        }
+
+        // 5. Cálculo do Valor Líquido
+        const valorLiquido = valorBruto - iss - irrf - pcc - inss;
+
+        // Atualizar a interface
+        document.getElementById('resBruto').innerText = formatarMoeda(valorBruto);
+        document.getElementById('txtIss').innerText = aliquotaIss;
+        document.getElementById('resIss').innerText = formatarMoeda(iss);
+        
+        document.getElementById('resIrrf').innerText = formatarMoeda(irrf);
+        document.getElementById('infoIr').innerText = msgIr;
+        
+        document.getElementById('resPcc').innerText = formatarMoeda(pcc);
+        document.getElementById('infoPcc').innerText = msgInss === "Retido (11% Mão de Obra)" && valorBruto <= 215.05 ? msgPcc : msgPcc;
+        document.getElementById('infoPcc').innerText = msgPcc;
+
+        document.getElementById('resInss').innerText = formatarMoeda(inss);
+        document.getElementById('infoInss').innerText = msgInss;
+
+        document.getElementById('resLiquido').innerText = formatarMoeda(valorLiquido);
+
+        // Exibir caixa de resultados
+        document.getElementById('resultBox').classList.add('active');
+    }
+</script>
+
+</body>
+</html>

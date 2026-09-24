@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI & Insights Farmacêuticos - Inteligência de Precificação</title>
+    <style>
+        :root { 
+            --primary-color: #0f766e; 
+            --primary-hover: #115e59;
+            --bg-color: #f0fdfa; 
+            --text-color: #1f2937; 
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --accent-yellow: #d97706;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin-top: 0;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            font-size: 13px;
+        }
+        input { 
+            width: 100%; 
+            padding: 9px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+        }
+        button { 
+            width: 100%; 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-weight: bold; 
+            font-size: 16px;
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background-color 0.2s;
+        }
+        button:hover { 
+            background-color: var(--primary-hover); 
+        }
+        .bi-dashboard { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background-color: #f9fafb; 
+            border-radius: 8px; 
+            border: 1px solid #e5e7eb;
+        }
+        .bi-dashboard h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        .metric-card span {
+            display: block;
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        .metric-card strong {
+            font-size: 16px;
+            color: #111827;
+        }
+        .insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .insights-list li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .insight-success { background-color: #ecfdf5; color: #065f46; border-left: 4px solid var(--accent-green); }
+        .insight-warning { background-color: #fffbeb; color: #92400e; border-left: 4px solid var(--accent-yellow); }
+        .insight-danger { background-color: #fef2f2; color: #991b1b; border-left: 4px solid var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BI & Inteligência de Precificação Farmacêutica</h2>
+    
+    <div class="section-title">Parâmetros de Entrada e Mercado</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Custo de Aquisição (CMV) (R$):</label>
+            <input type="number" id="custo" step="0.01" placeholder="0,00" value="45.00">
+        </div>
+        <div class="form-group">
+            <label>Preço Praticado Atual (Balcão) (R$):</label>
+            <input type="number" id="precoAtual" step="0.01" placeholder="0,00" value="79.90">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>PF - Preço de Fábrica (R$):</label>
+            <input type="number" id="pf" step="0.01" placeholder="0,00" value="65.00">
+        </div>
+        <div class="form-group">
+            <label>PMC - Preço Máximo ao Consumidor (R$):</label>
+            <input type="number" id="pmc" step="0.01" placeholder="0,00" value="98.50">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Despesas Operacionais e Impostos (%)</label>
+            <input type="number" id="despesasOp" step="0.1" value="18">
+        </div>
+        <div class="form-group">
+            <label>Volume Médio de Vendas (Unidades/Mês)</label>
+            <input type="number" id="volume" step="1" value="50">
+        </div>
+    </div>
+    
+    <button onclick="gerarBI()">Gerar Análise de Business Intelligence</button>
+
+    <div id="biDashboard" class="bi-dashboard" style="display:none;">
+        <h3>Dashboard de Performance Financeira</h3>
+        
+        <div class="metric-grid">
+            <div class="metric-card">
+                <span>Margem Bruta Real</span>
+                <strong id="biMargemBruta">-</strong>
+            </div>
+            <div class="metric-card">
+                <span>Lucro Líquido Unitário</span>
+                <strong id="biLucroUnitario">-</strong>
+            </div>
+            <div class="metric-card">
+                <span>Faturamento Potencial</span>
+                <strong id="biFaturamento">-</strong>
+            </div>
+        </div>
+
+        <div class="section-title" style="margin-top: 15px;">Insights Estratégicos & Recomendações de BI</div>
+        <ul class="insights-list" id="biInsights">
+            <!-- Injetado via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+function gerarBI() {
+    const custo = parseFloat(document.getElementById('custo').value) || 0;
+    const precoAtual = parseFloat(document.getElementById('precoAtual').value) || 0;
+    const pf = parseFloat(document.getElementById('pf').value) || 0;
+    const pmc = parseFloat(document.getElementById('pmc').value) || 0;
+    const despesasOpPerc = parseFloat(document.getElementById('despesasOp').value) / 100;
+    const volume = parseInt(document.getElementById('volume').value) || 0;
+
+    if (custo <= 0 || precoAtual <= 0) {
+        alert("Preencha o Custo e o Preço Praticado corretamente.");
+        return;
+    }
+
+    // Cálculos de BI
+    const margemBrutaReal = ((precoAtual - custo) / precoAtual) * 100;
+    const custoOperacionalValor = precoAtual * despesasOpPerc;
+    const lucroLiquidoUnitario = precoAtual - custo - custoOperacionalValor;
+    const margemLiquidaReal = (lucroLiquidoUnitario / precoAtual) * 100;
+    const faturamentoMensal = precoAtual * volume;
+    const lucroLiquidoMensal = lucroLiquidoUnitario * volume;
+    const markup = precoAtual / custo;
+
+    // Atualizar Métricas na Tela
+    document.getElementById('biMargemBruta').innerText = margemBrutaReal.toFixed(2) + "%";
+    document.getElementById('biLucroUnitario').innerText = lucroLiquidoUnitario.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('biFaturamento').innerText = faturamentoMensal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+    // Gerador de Insights Inteligentes
+    let insightsHtml = '';
+
+    // Insight 1: Conformidade com o PMC (Regulatório)
+    if (pmc > 0 && precoAtual > pmc) {
+        insightsHtml += `<li class="insight-danger"><strong>Alerta Legal (Risco Procon/ANVISA):</strong> Seu preço atual (${precoAtual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}) está <strong>acima do PMC permitido</strong> (${pmc.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}). Risco severo de autuação. Ajuste imediato necessário.</li>`;
+    } else if (pmc > 0) {
+        const distanciaPMC = ((pmc - precoAtual) / pmc) * 100;
+        if (distanciaPMC < 5) {
+            insightsHtml += `<li class="insight-warning"><strong>Posicionamento de Preço:</strong> Você está operando muito próximo ao PMC (restam apenas ${distanciaPMC.toFixed(1)}% de margem teto). Excelente para rentabilidade, mas cuidado com a perda de competitividade frente a grandes redes.</li>`;
+        } else {
+            insightsHtml += `<li class="insight-success"><strong>Compliance Regulatório:</strong> O preço está perfeitamente enquadrado abaixo do PMC legal, mantendo uma distância segura de ${distanciaPMC.toFixed(1)}%.</li>`;
+        }
+    }
+
+    // Insight 2: Rentabilidade e Saúde Financeira
+    if (lucroLiquidoUnitario <= 0) {
+        insightsHtml += `<li class="insight-danger"><strong>Prejuízo Operacional Detectado:</strong> Este item está gerando um <strong>prejuízo líquido de ${lucroLiquidoUnitario.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})} por unidade</strong> após o abatimento de impostos e despesas operacionais. O preço atual está inviável.</li>`;
+    } else if (margemBrutaReal < 25) {
+        insightsHtml += `<li class="insight-warning"><strong>Margem Bruta Apertada:</strong> Sua margem bruta (${margemBrutaReal.toFixed(1)}%) está abaixo da média recomendada para o varejo farmacêutico (geralmente entre 30% e 40%). Avalie renegociar com o distribuidor ou subir o preço.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Saúde Financeira Saudável:</strong> Margem bruta robusta de ${margemBrutaReal.toFixed(1)}% e markup de ${markup.toFixed(2)}x. O produto gera uma receita líquida mensal estimada de ${lucroLiquidoMensal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}.</li>`;
+    }
+
+    // Insight 3: Oportunidade de Desconto de Balcão / PBM
+    if (pf > 0) {
+        const deltaPF = ((precoAtual - pf) / pf) * 100;
+        if (precoAtual < pf) {
+            insightsHtml += `<li class="insight-warning"><strong>Atenção ao Preço de Fábrica:</strong> Seu preço de venda está abaixo do Preço de Fábrica (PF). Verifique se este produto não sofreu perda de rentabilidade na compra ou se faz parte de uma estratégia agressiva de atração.</li>`;
+        }
+    }
+
+    // Adicionando sugestão comportamental de Preço Psicológico baseada nos dados
+    let precoPsicSugerido = Math.floor(precoAtual) + 0.99;
+    if (Math.abs(precoAtual - precoPsicSugerido) > 0.05) {
+        insightsHtml += `<li class="insight-success"><strong>Oportunidade de Precificação Psicológica:</strong> Ajustar o preço final para <strong>${precoPsicSugerido.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</strong> pode melhorar a percepção de valor do cliente sem causar impacto negativo no volume de giro.</li>`;
+    }
+
+    document.getElementById('biInsights').innerHTML = insightsHtml;
+    document.getElementById('biDashboard').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

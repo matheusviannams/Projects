@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Insights de Planilhas</title>
+    <!-- Importando SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .upload-card {
+            background: var(--card-bg);
+            border: 2px dashed var(--primary-color);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .upload-card:hover {
+            background: #f1f5f9;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .insights-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .insights-container h2 {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .insight-item {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .insight-number {
+            background: var(--primary-color);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+
+        .insight-text {
+            line-height: 1.5;
+        }
+
+        .loading {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Analisador de Planilhas Inteligente</h1>
+    <p class="subtitle">Anexe um arquivo Excel (.xlsx, .xls) ou CSV para gerar 10 insights automáticos.</p>
+
+    <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+        <p>Clique aqui ou selecione sua planilha</p>
+        <span class="upload-btn">Selecionar Arquivo</span>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .txt">
+    </div>
+
+    <div id="loading" class="loading">Lendo arquivo e gerando insights...</div>
+
+    <div id="insightsContainer" class="insights-container">
+        <h2>10 Insights Gerados</h2>
+        <div id="insightsList"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('insightsContainer').style.display = 'none';
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                // Tenta ler o workbook de forma tolerante a diferentes formatos
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                if (!jsonData || jsonData.length === 0) {
+                    alert("A planilha está vazia ou não pôde ser interpretada.");
+                    return;
+                }
+
+                generateInsights(jsonData, firstSheetName);
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao processar o arquivo. Verifique se ele não está corrompido ou protegido por senha.");
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        };
+
+        reader.onerror = function() {
+            alert("Erro ao ler o arquivo do computador.");
+            document.getElementById('loading').style.display = 'none';
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+
+    function generateInsights(data, sheetName) {
+        const totalRows = data.length;
+        const columns = Object.keys(data[0] || {});
+        const totalCols = columns.length;
+
+        if (totalCols === 0) {
+            alert("Nenhuma coluna válida foi encontrada.");
+            return;
+        }
+
+        const numericCols = [];
+        const textCols = [];
+
+        columns.forEach(col => {
+            let isNumeric = true;
+            let sampleCount = 0;
+            data.forEach(row => {
+                const val = row[col];
+                if (val !== "" && val !== null && val !== undefined) {
+                    sampleCount++;
+                    if (isNaN(Number(val))) {
+                        isNumeric = false;
+                    }
+                }
+            });
+            if (isNumeric && sampleCount > 0) {
+                numericCols.push(col);
+            } else {
+                textCols.push(col);
+            }
+        });
+
+        const insights = [];
+
+        // 1. Volume de Dados
+        insights.push(`A planilha analisada (aba **"${sheetName}"**) possui um total de **${totalRows} registros** (linhas) e **${totalCols} colunas** identificadas.`);
+
+        // 2. Estrutura de Colunas
+        insights.push(`Foram classificadas **${numericCols.length} colunas numéricas** (ideais para cálculos) e **${textCols.length} colunas de texto/qualitativas**.`);
+
+        // 3. Listagem de Colunas
+        insights.push(`Os campos disponíveis nesta base são: *${columns.join(', ')}*.`);
+
+        // 4 e 5. Estatísticas numéricas
+        if (numericCols.length > 0) {
+            const firstNumCol = numericCols[0];
+            const values = data.map(r => Number(r[firstNumCol])).filter(v => !isNaN(v));
+            const sum = values.reduce((a, b) => a + b, 0);
+            const avg = values.length ? sum / values.length : 0;
+            const max = values.length ? Math.max(...values) : 0;
+            const min = values.length ? Math.min(...values) : 0;
+
+            insights.push(`Na primeira métrica numérica (**"${firstNumCol}"**), o valor **máximo** registrado é **${max.toLocaleString()}** e o **mínimo** é **${min.toLocaleString()}**.`);
+            insights.push(`A **média aritmética** da coluna **"${firstNumCol}"** é de aproximadamente **${avg.toFixed(2)}**, totalizando uma soma acumulada de **${sum.toLocaleString()}**.`);
+        } else {
+            insights.push(`Não há colunas puramente numéricas para gerar somas ou médias estatísticas automáticas.`);
+            insights.push(`O conjunto de dados é inteiramente focado em registros descritivos ou textuais.`);
+        }
+
+        // 6. Completude
+        let totalCells = totalRows * totalCols;
+        let emptyCells = 0;
+        data.forEach(row => {
+            columns.forEach(col => {
+                if (row[col] === "" || row[col] === null || row[col] === undefined) emptyCells++;
+            });
+        });
+        let completeness = totalCells > 0 ? ((1 - (emptyCells / totalCells)) * 100).toFixed(1) : 0;
+        insights.push(`O índice de preenchimento (completude) dos dados é de **${completeness}%**, com ${emptyCells} células vazias mapeadas.`);
+
+        // 7. Cardinalidade
+        const targetCol = textCols.length > 0 ? textCols[0] : columns[0];
+        const uniqueValues = new Set(data.map(r => r[targetCol])).size;
+        insights.push(`A coluna principal de texto (**"${targetCol}"**) possui **${uniqueValues} valores únicos** diferentes entre os registros.`);
+
+        // 8. Concentração de Dados
+        const diversityPct = totalRows > 0 ? ((uniqueValues / totalRows) * 100).toFixed(1) : 0;
+        insights.push(`A diversidade do campo **"${targetCol}"** mostra que cerca de **${diversityPct}%** das entradas são termos exclusivos.`);
+
+        // 9. Qualidade dos Registros
+        const statusClean = emptyCells === 0 ? "A base de dados está perfeitamente íntegra, sem nenhuma lacuna." : "Foram encontrados campos vazios que podem requerer tratamento futuro.";
+        insights.push(`Diagnóstico de integridade: ${statusClean}`);
+
+        // 10. Sugestão de Uso
+        insights.push(`Sugestão de cruzamento: Utilize o campo **"${targetCol}"** em conjunto com as métricas da planilha para criar relatórios dinâmicos e gráficos gerenciais.`);
+
+        // Exibir na tela
+        const listEl = document.getElementById('insightsList');
+        listEl.innerHTML = '';
+        
+        insights.forEach((text, index) => {
+            const item = document.createElement('div');
+            item.className = 'insight-item';
+            item.innerHTML = `
+                <div class="insight-number">${index + 1}</div>
+                <div class="insight-text">${text}</div>
+            `;
+            listEl.appendChild(item);
+        });
+
+        document.getElementById('insightsContainer').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

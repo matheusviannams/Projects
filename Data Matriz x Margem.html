@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Matriz x Margem</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f1f2f6; color: #2f3640; }
+        .container { background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); max-width: 1050px; margin: auto; }
+        h1 { color: #273c75; font-size: 22px; text-align: center; border-bottom: 2px solid #487eb0; padding-bottom: 10px; }
+        .upload-box { border: 2px dashed #487eb0; padding: 20px; text-align: center; border-radius: 6px; background-color: #f5f6fa; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #dcdde1; padding: 8px 10px; text-align: left; }
+        th { background-color: #487eb0; color: white; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .badge-danger { background-color: #e84118; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
+        .badge-success { background-color: #4cd137; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
+        .metrics-grid { display: flex; gap: 15px; margin-bottom: 20px; }
+        .metric-card { flex: 1; background: #f5f6fa; padding: 15px; border-radius: 6px; border-left: 4px solid #487eb0; text-align: center; }
+        .metric-card h3 { margin: 0; font-size: 14px; color: #7f8c8d; }
+        .metric-card p { margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: #2f3640; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Matriz x Margem</h1>
+        
+        <div class="upload-box">
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Simular Carga de Dados (Lote do ERP Industrial - Fluxo de Metal):</p>
+            <button onclick="carregarDadosExemplo()" style="padding: 10px 20px; background-color: #487eb0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Carregar Relatório Industrial</button>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total de SKUs / Projetos</h3>
+                <p id="totalSkus">0</p>
+            </div>
+            <div class="metric-card">
+                <h3>Margem Média Geral</h3>
+                <p id="mediaMargem">0.00%</p>
+            </div>
+            <div class="metric-card">
+                <h3>SKUs com Alerta de Prejuízo</h3>
+                <p id="totalAlertas" style="color: #e84118;">0</p>
+            </div>
+        </div>
+
+        <h3>Matriz Auditoria</h3>
+        <div style="overflow-x: auto;">
+            <table id="tabelaResultados">
+                <thead>
+                    <tr>
+                        <th>Código / Sistema Refratário & Fluxo</th>
+                        <th>Criticidade</th>
+                        <th>Custo de Fabricação (PF)</th>
+                        <th>Carga Tributária (%)</th>
+                        <th>Preço Contratual Venda</th>
+                        <th>Margem Real (%)</th>
+                        <th>Status / Ação Recomendada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="7" style="text-align: center; color: #7f8c8d;">Nenhum dado carregado. Clique no botão acima para processar.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function carregarDadosExemplo() {
+            // Dataset focado em engenharia e tecnologia de fluxo de metal fundido (estilo Vesuvius)
+            const dadosBrutos = [
+                { nome: "Válvula Slide Gate (SISTEMA VAP)", curva: "A", pf: 4200.00, tributos: 18.25, pv: 6500.00 },
+                { nome: "Tubo Submerso (SEN - Aço Líquido)", curva: "A", pf: 850.00, tributos: 15.65, pv: 1200.00 },
+                { nome: "Placa Refratária Zircônia", curva: "B", pf: 1500.00, tributos: 18.25, pv: 2100.00 },
+                { nome: "Massa de Calafetação Tundish", curva: "C", pf: 120.00, tributos: 12.00, pv: 145.00 },
+                { nome: "Mecanismo Isostático de Controle", curva: "A", pf: 12500.00, tributos: 22.40, pv: 17800.00 },
+                { nome: "Filtro Cerâmico Espumado", curva: "B", pf: 310.00, tributos: 15.65, pv: 420.00 },
+                { nome: "Lança de Injeção de Gás Inerte", curva: "C", pf: 3400.00, tributos: 18.25, pv: 4100.00 }
+            ];
+
+            processarEReorganizarDados(dadosBrutos);
+        }
+
+        function processarEReorganizarDados(dados) {
+            let tbody = document.querySelector("#tabelaResultados tbody");
+            tbody.innerHTML = "";
+
+            let somaMargem = 0;
+            let qtdAlertas = 0;
+
+            dados.forEach(item => {
+                let custoEfetivo = item.pf * (1 + (item.tributos / 100));
+                let margemReal = ((item.pv - custoEfetivo) / item.pv) * 100;
+                somaMargem += margemReal;
+
+                let statusHtml = "";
+                if (margemReal < 12) { // Margem ajustada para o perfil industrial pesado de alta tecnologia
+                    qtdAlertas++;
+                    statusHtml = `<span class="badge-danger">Margem Crítica (< 12%)</span>`;
+                } else {
+                    statusHtml = `<span class="badge-success">Saudável</span>`;
+                }
+
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><b>${item.nome}</b></td>
+                    <td>${item.curva}</td>
+                    <td>R$ ${item.pf.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td>${item.tributos.toFixed(2)}%</td>
+                    <td>R$ ${item.pv.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td><b>${margemReal.toFixed(2)}%</b></td>
+                    <td>${statusHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("totalSkus").innerText = dados.length;
+            document.getElementById("mediaMargem").innerText = (somaMargem / dados.length).toFixed(2) + "%";
+            document.getElementById("totalAlertas").innerText = qtdAlertas;
+        }
+    </script>
+</body>
+</html>

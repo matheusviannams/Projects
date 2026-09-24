@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <header class="bg-indigo-900 text-white shadow-md">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold"><i class="fa-solid fa-chart-line mr-2 text-indigo-400"></i> Pricing Intelligence v2.0</h1>
+            <span class="text-xs bg-indigo-800 px-3 py-1 rounded-full text-indigo-200">Gerência de Pricing</span>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 space-y-8">
+        <!-- Seção de Input -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-semibold text-indigo-900 mb-4">Input de Formação de Preço</h2>
+            <form id="pricingForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div><label class="block text-xs font-medium text-slate-600">NCM</label><input type="text" id="ncm" value="3004.90.99" class="w-full border rounded-lg p-2.5 mt-1 text-sm"></div>
+                <div><label class="block text-xs font-medium text-slate-600">PF (R$)</label><input type="number" id="pf" value="100.00" class="w-full border rounded-lg p-2.5 mt-1 text-sm"></div>
+                <div><label class="block text-xs font-medium text-slate-600">PMC (R$)</label><input type="number" id="pmc" value="150.00" class="w-full border rounded-lg p-2.5 mt-1 text-sm"></div>
+                <div><label class="block text-xs font-medium text-slate-600">Venda (PV) (R$)</label><input type="number" id="pv" value="130.00" class="w-full border rounded-lg p-2.5 mt-1 text-sm"></div>
+                <div><label class="block text-xs font-medium text-slate-600">Custo (COGS) (R$)</label><input type="number" id="cogs" value="70.00" class="w-full border rounded-lg p-2.5 mt-1 text-sm"></div>
+                <div class="md:col-span-5"><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-sm font-bold">Processar Análise</button></div>
+            </form>
+        </section>
+
+        <!-- Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><p class="text-[10px] text-slate-500 uppercase">Margem Bruta</p><h3 id="cardMargem" class="text-2xl font-bold text-slate-900">0%</h3></div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><p class="text-[10px] text-slate-500 uppercase">Markup</p><h3 id="cardMarkup" class="text-2xl font-bold text-slate-900">0x</h3></div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><p class="text-[10px] text-slate-500 uppercase">Impostos (Est.)</p><h3 id="cardImpostos" class="text-2xl font-bold text-slate-900">18%</h3></div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm"><p class="text-[10px] text-slate-500 uppercase">% do Teto (PMC)</p><h3 id="cardPos" class="text-2xl font-bold text-slate-900">0%</h3></div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><canvas id="priceChart"></canvas></div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><canvas id="compChart"></canvas></div>
+        </div>
+
+        <!-- 10 Insights -->
+        <section class="bg-white p-6 rounded-xl border border-slate-200">
+            <h2 class="text-lg font-semibold text-indigo-900 mb-4">10 Insights Estratégicos de Pricing</h2>
+            <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('pricingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pf = parseFloat(document.getElementById('pf').value);
+            const pmc = parseFloat(document.getElementById('pmc').value);
+            const pv = parseFloat(document.getElementById('pv').value);
+            const cogs = parseFloat(document.getElementById('cogs').value);
+            const impostos = 0.18;
+            
+            const margem = ((pv - cogs - (pv * impostos)) / pv) * 100;
+            document.getElementById('cardMargem').innerText = margem.toFixed(1) + '%';
+            document.getElementById('cardMarkup').innerText = (pv / cogs).toFixed(2) + 'x';
+            document.getElementById('cardPos').innerText = ((pv / pmc) * 100).toFixed(1) + '%';
+
+            const insights = [
+                "1. Elasticidade: O mercado aceita um incremento no PV sem perda severa de demanda?",
+                "2. Teto Legal: Mantenha o PV abaixo de 100% do PMC para evitar sanções regulatórias.",
+                "3. Margem Líquida: O markup atual absorve oscilações cambiais no COGS?",
+                "4. Análise Tributária: O NCM definido permite uso de créditos ou benefícios fiscais?",
+                "5. Benchmarking: Seu PV está alinhado com a média ponderada do mercado?",
+                "6. Curva ABC: Produtos classe A exigem revisão mensal de pricing.",
+                "7. Promoções: Descontos devem ser calculados com base na margem de contribuição mínima.",
+                "8. Valor Percebido: Preço é a intersecção entre custo e percepção de valor do cliente.",
+                "9. Sazonalidade: Ajuste dinâmico de preços conforme picos de demanda.",
+                "10. Gestão de Mix: Use produtos âncoras para tráfego e foco na margem em nichos."
+            ];
+            document.getElementById('insightsList').innerHTML = insights.map(i => `<div class='p-3 bg-slate-50 border rounded-lg text-xs text-slate-600'>${i}</div>`).join('');
+            
+            // Render Gráficos
+            new Chart(document.getElementById('priceChart'), { type: 'doughnut', data: { labels: ['Custo', 'Impostos', 'Margem'], datasets: [{ data: [cogs, pv*impostos, pv-cogs-(pv*impostos)], backgroundColor: ['#ef4444', '#f59e0b', '#10b981'] }] }});
+            new Chart(document.getElementById('compChart'), { type: 'bar', data: { labels: ['PF', 'PMC', 'PV Atual'], datasets: [{ label: 'R$', data: [pf, pmc, pv], backgroundColor: '#6366f1' }] }});
+        });
+        document.getElementById('pricingForm').dispatchEvent(new Event('submit'));
+    </script>
+</body>
+</html>

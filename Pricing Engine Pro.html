@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Advanced Analytics v3.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <header class="bg-slate-900 text-white shadow-md px-6 py-4">
+        <h1 class="text-xl font-bold flex items-center gap-3"><i class="fa-solid fa-chart-line text-emerald-400"></i> Pricing Engine Pro</h1>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-6">
+        <section class="bg-white p-6 rounded-xl border shadow-sm">
+            <form id="pricingForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div><label class="text-xs font-bold text-slate-500">NCM (Selecione)</label>
+                    <select id="ncm" class="w-full border rounded p-2 text-sm mt-1"></select></div>
+                <div><label class="text-xs font-bold text-slate-500">Preço Fábrica (PF)</label>
+                    <input type="number" id="pf" value="100.00" class="w-full border rounded p-2 mt-1"></div>
+                <div><label class="text-xs font-bold text-slate-500">PMC</label>
+                    <input type="number" id="pmc" value="150.00" class="w-full border rounded p-2 mt-1"></div>
+                <div><label class="text-xs font-bold text-slate-500">Preço de Venda Final (PV)</label>
+                    <input type="number" id="pv" value="130.00" class="w-full border rounded p-2 mt-1"></div>
+                <div class="md:col-span-4"><button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded font-bold">Calcular Cenário Tributário</button></div>
+            </form>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-4 rounded-xl border shadow-sm"><p class="text-[10px] uppercase text-slate-400">Total Impostos</p><h3 id="resImpostos" class="text-xl font-bold">R$ 0,00</h3></div>
+            <div class="bg-white p-4 rounded-xl border shadow-sm"><p class="text-[10px] uppercase text-slate-400">Margem Líquida</p><h3 id="resMargem" class="text-xl font-bold">0%</h3></div>
+            <div class="bg-white p-4 rounded-xl border shadow-sm"><p class="text-[10px] uppercase text-slate-400">Tributação Efetiva</p><h3 id="resEfetiva" class="text-xl font-bold">0%</h3></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border shadow-sm">
+            <h3 class="font-bold mb-4">Detalhamento de Impostos (Simulado)</h3>
+            <table class="w-full text-sm">
+                <thead><tr class="text-left bg-slate-100"><th class="p-2">Tributo</th><th class="p-2">Alíquota</th><th class="p-2">Valor Estimado</th></tr></thead>
+                <tbody id="taxTable"></tbody>
+            </table>
+        </div>
+
+        <section class="bg-white p-6 rounded-xl border shadow-sm">
+            <h3 class="font-bold mb-4">10 Insights Estratégicos</h3>
+            <div id="insightsList" class="grid md:grid-cols-2 gap-3 text-xs text-slate-600"></div>
+        </section>
+    </main>
+
+    <script>
+        const ncms = [
+            "30049099 - Medicamentos diversos", "85171231 - Telefones celulares", "87089990 - Peças automotivas",
+            "21069090 - Suplementos alimentares", "33049990 - Cosméticos", "84713012 - Notebooks",
+            "39269090 - Plásticos diversos", "22029900 - Bebidas não alcoólicas", "90189099 - Equipamentos médicos",
+            "64039190 - Calçados", "94036000 - Móveis de madeira", "85444200 - Cabos elétricos",
+            "38089419 - Desinfetantes", "27101994 - Lubrificantes", "85285220 - Monitores",
+            "34011190 - Sabões", "61091000 - T-shirts algodão", "30042069 - Antibióticos",
+            "33051000 - Shampoos", "20098990 - Sucos", "73211100 - Fogões", "85165000 - Micro-ondas",
+            "95030099 - Brinquedos", "48201000 - Cadernos", "85176259 - Roteadores",
+            "33072010 - Desodorantes", "23099090 - Ração animal", "85076000 - Baterias",
+            "84183000 - Freezers", "62044200 - Vestidos algodão"
+        ];
+        
+        const select = document.getElementById('ncm');
+        ncms.forEach(n => { let opt = document.createElement('option'); opt.value = n; opt.innerHTML = n; select.appendChild(opt); });
+
+        document.getElementById('pricingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pv = parseFloat(document.getElementById('pv').value);
+            const mva = 0.40; // Simulado
+            const icms = pv * 0.18;
+            const st = (pv * (1 + mva) * 0.18) - icms;
+            const pisCofins = pv * 0.0925;
+            const cbsIbs = pv * 0.12; // Simulado reforma
+            
+            const totalTax = icms + Math.max(0, st) + pisCofins + cbsIbs;
+            
+            document.getElementById('resImpostos').innerText = 'R$ ' + totalTax.toFixed(2);
+            document.getElementById('resEfetiva').innerText = ((totalTax / pv) * 100).toFixed(1) + '%';
+            document.getElementById('resMargem').innerText = (((pv - totalTax - (parseFloat(document.getElementById('pf').value) * 0.5)) / pv) * 100).toFixed(1) + '%';
+
+            const taxData = [
+                ['ICMS', '18%', icms.toFixed(2)], ['ICMS-ST', 'MVA 40%', Math.max(0, st).toFixed(2)],
+                ['PIS/COFINS', '9.25%', pisCofins.toFixed(2)], ['CBS/IBS (Est.)', '12%', cbsIbs.toFixed(2)]
+            ];
+            
+            document.getElementById('taxTable').innerHTML = taxData.map(r => `<tr><td class='p-2 border'>${r[0]}</td><td class='p-2 border'>${r[1]}</td><td class='p-2 border'>R$ ${r[2]}</td></tr>`).join('');
+            
+            const insights = [
+                "1. Impacto CBS/IBS: A transição para o novo modelo reduz cumulatividade, mas exige revisão de preços.",
+                "2. Análise de Substituição Tributária: O ICMS-ST eleva o capital imobilizado na cadeia.",
+                "3. Margem líquida real: Considere todos os tributos diretos e indiretos no cálculo final.",
+                "4. Competitividade: A carga tributária brasileira é um dos principais diferenciais de preço vs mercado internacional.",
+                "5. DIFAL: Se venda interestadual, adicione o diferencial de alíquota ao custo total.",
+                "6. NCM Correto: Classificação errada pode gerar multas e recolhimento a maior de impostos.",
+                "7. Benefícios Fiscais: Verifique se o NCM possui redução de base de cálculo em seu estado.",
+                "8. Precificação Baseada em Valor: Não foque apenas no custo, mas na disposição de pagamento do cliente.",
+                "9. Gestão de Fluxo: O recolhimento antecipado do ST afeta o fluxo de caixa imediato.",
+                "10. Revisão de Preço: Reavalie seus preços sempre que houver alteração na pauta fiscal."
+            ];
+            document.getElementById('insightsList').innerHTML = insights.map(i => `<div class='p-2 bg-slate-50 rounded'>${i}</div>`).join('');
+        });
+    </script>
+</body>
+</html>

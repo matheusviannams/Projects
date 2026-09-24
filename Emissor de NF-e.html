@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Espelho de NF-e com Cálculo Tributário Automático</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        fieldset { border: 1px solid #bdc3c7; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        legend { font-weight: bold; color: #2980b9; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        label { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+        input, textarea, select { padding: 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
+        button { background-color: #27ae60; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+        button:hover { background-color: #219653; }
+        .btn-danger { background-color: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ccc; padding: 6px; font-size: 11px; text-align: center; }
+        th { background: #f8f9fa; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        
+        /* Layout DANFE */
+        .danfe-preview { display: none; margin-top: 40px; border: 2px solid #000; padding: 20px; background: #fff; }
+        .danfe-header { display: flex; justify-content: space-between; border-bottom: 1px solid #000; margin-bottom: 10px; padding-bottom: 10px; }
+        .danfe-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Emissor de NF-e (Simulador com Cálculo Fiscal Inteligente)</h1>
+    <form id="nfForm">
+        <fieldset>
+            <legend>Dados Operacionais</legend>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Natureza da Operação:</label>
+                    <input type="text" id="natOp" value="Venda de Mercadoria" required>
+                </div>
+                <div class="form-group">
+                    <label>UF de Origem:</label>
+                    <select id="ufOrigem" onchange="calcularTudo()">
+                        <option value="SP">SP (18%)</option>
+                        <option value="RJ">RJ (20%)</option>
+                        <option value="MG">MG (18%)</option>
+                        <option value="RS">RS (17%)</option>
+                        <option value="PR">PR (19.5%)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>UF de Destino:</label>
+                    <select id="ufDestino" onchange="calcularTudo()">
+                        <option value="SP">SP</option>
+                        <option value="RJ">RJ</option>
+                        <option value="MG">MG</option>
+                        <option value="RS">RS</option>
+                        <option value="PR">PR</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="form-row">
+            <fieldset style="flex:1"><legend>Emitente</legend>
+                <input type="text" id="eNome" placeholder="Razão Social" style="width:90%; margin-bottom:5px;"><br>
+                <input type="text" id="eCnpj" placeholder="CNPJ" style="width:48%">
+                <input type="text" id="eIe" placeholder="Inscrição Estadual (IE)" style="width:48%">
+                <textarea id="eEnd" placeholder="Endereço Completo" style="width:95%; margin-top:5px;"></textarea>
+            </fieldset>
+            <fieldset style="flex:1"><legend>Destinatário</legend>
+                <input type="text" id="dNome" placeholder="Razão Social" style="width:90%; margin-bottom:5px;"><br>
+                <input type="text" id="dCnpj" placeholder="CNPJ / CPF" style="width:48%">
+                <input type="text" id="dIe" placeholder="Inscrição Estadual (IE)" style="width:48%">
+                <textarea id="dEnd" placeholder="Endereço Completo" style="width:95%; margin-top:5px;"></textarea>
+            </fieldset>
+        </div>
+
+        <fieldset>
+            <legend>Itens e Apuração Automática de Tributos</legend>
+            <div style="overflow-x: auto;">
+                <table id="tabelaItens">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>NCM</th>
+                            <th>Qtd</th>
+                            <th>Vl. Unit</th>
+                            <th>ICMS</th>
+                            <th>PIS</th>
+                            <th>COFINS</th>
+                            <th>IPI</th>
+                            <th>IBS/CBS</th>
+                            <th>Total Item</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itensBody">
+                        <tr>
+                            <td><input type="text" class="iDesc" style="width:110px" value="Produto Exemplo" required></td>
+                            <td><input type="text" class="iNcm" style="width:65px" value="0000.00.00" required></td>
+                            <td><input type="number" class="iQtd" value="1" min="0.01" step="any" oninput="calcularTudo()" style="width:40px" required></td>
+                            <td><input type="number" class="iVal" value="100.00" min="0" step="0.01" oninput="calcularTudo()" style="width:60px" required></td>
+                            <td class="resIcms">R$ 0,00</td>
+                            <td class="resPis">R$ 0,00</td>
+                            <td class="resCofins">R$ 0,00</td>
+                            <td class="resIpi">R$ 0,00</td>
+                            <td class="resIbsCbs">R$ 0,00</td>
+                            <td class="iTotal">R$ 100,00</td>
+                            <td><button type="button" class="btn-danger" onclick="removerLinha(this)">X</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" onclick="addLinha()">+ Adicionar Item</button>
+        </fieldset>
+
+        <fieldset>
+            <legend>Informações Complementares</legend>
+            <textarea id="infoCompl" style="width:100%; height:60px;" placeholder="Dados bancários, observações do transportador ou mensagens de interesse do fisco."></textarea>
+        </fieldset>
+
+        <button type="button" onclick="gerarDanfe()" style="width:100%; font-size:16px;">Gerar Espelho da Nota Fiscal</button>
+    </form>
+
+    <!-- Espelho DANFE -->
+    <div id="danfe" class="danfe-preview">
+        <div class="danfe-title">DANFE SIMULADO - APENAS PARA CONSULTA (SEM VALOR FISCAL)</div>
+        <div class="danfe-header">
+            <div><strong>Natureza da Operação:</strong> <span id="rNat"></span></div>
+            <div><strong>Origem / Destino:</strong> <span id="rRota"></span></div>
+        </div>
+        <div class="danfe-header">
+            <div><strong>Emitente:</strong><br><span id="rENome"></span><br>CNPJ: <span id="rECnpj"></span> | IE: <span id="rEIe"></span><br>End: <span id="rEEnd"></span></div>
+            <div><strong>Destinatário:</strong><br><span id="rDNome"></span><br>CNPJ: <span id="rDCnpj"></span> | IE: <span id="rDIe"></span><br>End: <span id="rDEnd"></span></div>
+        </div>
+        
+        <div style="font-weight: bold; font-size: 12px; margin-bottom: 5px;">DADOS DOS PRODUTOS / SERVIÇOS E TRIBUTOS APURADOS</div>
+        <table id="rTabela">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>NCM</th>
+                    <th>Qtd</th>
+                    <th>Vl. Unit</th>
+                    <th>ICMS</th>
+                    <th>PIS</th>
+                    <th>COFINS</th>
+                    <th>IPI</th>
+                    <th>IBS/CBS</th>
+                    <th>Vl. Total</th>
+                </tr>
+            </thead>
+            <tbody id="rBody"></tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 13px; background: #f9f9f9; padding: 10px; border: 1px solid #ccc;">
+            <div>
+                <strong>TOTAIS DOS TRIBUTOS APROXIMADOS:</strong><br>
+                ICMS: <span id="tIcms">R$ 0,00</span> | PIS: <span id="tPis">R$ 0,00</span> | COFINS: <span id="tCofins">R$ 0,00</span><br>
+                IPI: <span id="tIpi">R$ 0,00</span> | IBS/CBS (Reforma): <span id="tIbsCbs">R$ 0,00</span>
+            </div>
+            <div style="text-align: right; font-size: 16px; font-weight: bold;">
+                VALOR TOTAL DA NOTA:<br><span id="rTotalGeral" style="color: #c0392b;">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div style="margin-top:15px; font-size:11px; border-top:1px solid #ccc; padding-top:5px;">
+            <strong>Informações Complementares:</strong><br><span id="rInfo"></span>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="window.print()">Imprimir / Salvar PDF</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tabela de aliquotas de ICMS internas simuladas por UF
+    const aliquotasIcms = { 'SP': 0.18, 'RJ': 0.20, 'MG': 0.18, 'RS': 0.17, 'PR': 0.195 };
+
+    function addLinha() {
+        const row = `<tr>
+            <td><input type="text" class="iDesc" style="width:110px" value="Novo Produto" required></td>
+            <td><input type="text" class="iNcm" style="width:65px" value="0000.00.00" required></td>
+            <td><input type="number" class="iQtd" value="1" min="0.01" step="any" oninput="calcularTudo()" style="width:40px" required></td>
+            <td><input type="number" class="iVal" value="50.00" min="0" step="0.01" oninput="calcularTudo()" style="width:60px" required></td>
+            <td class="resIcms">R$ 0,00</td>
+            <td class="resPis">R$ 0,00</td>
+            <td class="resCofins">R$ 0,00</td>
+            <td class="resIpi">R$ 0,00</td>
+            <td class="resIbsCbs">R$ 0,00</td>
+            <td class="iTotal">R$ 50,00</td>
+            <td><button type="button" class="btn-danger" onclick="removerLinha(this)">X</button></td>
+        </tr>`;
+        document.getElementById('itensBody').insertAdjacentHTML('beforeend', row);
+        calcularTudo();
+    }
+
+    function removerLinha(btn) {
+        const row = btn.closest('tr');
+        if (document.querySelectorAll('#itensBody tr').length > 1) {
+            row.remove();
+            calcularTudo();
+        } else {
+            alert("A nota fiscal deve possuir ao menos um item.");
+        }
+    }
+
+    function calcularTudo() {
+        const ufOrig = document.getElementById('ufOrigem').value;
+        const ufDest = document.getElementById('ufDestino').value;
+        
+        // Alíquotas base padronizadas vigentes
+        const aliqIcms = ufOrig === ufDest ? (aliquotasIcms[ufOrig] || 0.18) : 0.12; // Interestadual padrão 12% ou interna
+        const aliqPis = 0.0165;     // 1.65% (Regime não-cumulativo)
+        const aliqCofins = 0.076;   // 7.60% (Regime não-cumulativo)
+        const aliqIpi = 0.05;       // 5% (Média geral industrializada)
+        const aliqIbsCbs = 0.01;    // 1% totalizador fase de testes (0.1% IBS + 0.9% CBS)
+
+        let totGeral = 0;
+        let sumIcms = 0, sumPis = 0, sumCofins = 0, sumIpi = 0, sumIbsCbs = 0;
+
+        document.querySelectorAll('#itensBody tr').forEach(tr => {
+            const q = parseFloat(tr.querySelector('.iQtd').value) || 0;
+            const v = parseFloat(tr.querySelector('.iVal').value) || 0;
+            const valBase = q * v;
+
+            // Cálculos individuais dos tributos
+            const vIcms = valBase * aliqIcms;
+            const vPis = valBase * aliqPis;
+            const vCofins = valBase * aliqCofins;
+            const vIpi = valBase * aliqIpi;
+            const vIbsCbs = valBase * aliqIbsCbs;
+
+            // Total do item (considerando valor do produto + IPI que costuma somar na nota)
+            const valTotalItem = valBase + vIpi;
+
+            // Atualiza células da linha
+            tr.querySelector('.resIcms').innerText = `R$ ${vIcms.toFixed(2)}`;
+            tr.querySelector('.resPis').innerText = `R$ ${vPis.toFixed(2)}`;
+            tr.querySelector('.resCofins').innerText = `R$ ${vCofins.toFixed(2)}`;
+            tr.querySelector('.resIpi').innerText = `R$ ${vIpi.toFixed(2)}`;
+            tr.querySelector('.resIbsCbs').innerText = `R$ ${vIbsCbs.toFixed(2)}`;
+            tr.querySelector('.iTotal').innerText = `R$ ${valTotalItem.toFixed(2)}`;
+
+            totGeral += valTotalItem;
+            sumIcms += vIcms;
+            sumPis += vPis;
+            sumCofins += vCofins;
+            sumIpi += vIpi;
+            sumIbsCbs += vIbsCbs;
+        });
+
+        // Retorna totais globais se necessário
+        return { totGeral, sumIcms, sumPis, sumCofins, sumIpi, sumIbsCbs };
+    }
+
+    function gerarDanfe() {
+        // Dados Operacionais
+        document.getElementById('rNat').innerText = document.getElementById('natOp').value;
+        document.getElementById('rRota').innerText = document.getElementById('ufOrigem').value + ' ➔ ' + document.getElementById('ufDestino').value;
+        
+        // Emitente
+        document.getElementById('rENome').innerText = document.getElementById('eNome').value || 'Não informado';
+        document.getElementById('rECnpj').innerText = document.getElementById('eCnpj').value || '-';
+        document.getElementById('rEIe').innerText = document.getElementById('eIe').value || '-';
+        document.getElementById('rEEnd').innerText = document.getElementById('eEnd').value || '-';
+
+        // Destinatário
+        document.getElementById('rDNome').innerText = document.getElementById('dNome').value || 'Não informado';
+        document.getElementById('rDCnpj').innerText = document.getElementById('dCnpj').value || '-';
+        document.getElementById('rDIe').innerText = document.getElementById('dIe').value || '-';
+        document.getElementById('rDEnd').innerText = document.getElementById('dEnd').value || '-';
+
+        // Complementares
+        document.getElementById('rInfo').innerText = document.getElementById('infoCompl').value || 'Nenhuma informação adicional.';
+
+        // Copiar tabela de itens para o espelho
+        const rBody = document.getElementById('rBody');
+        rBody.innerHTML = '';
+        
+        document.querySelectorAll('#itensBody tr').forEach(tr => {
+            const clone = tr.cloneNode(true);
+            // Limpa o botão de exclusão do espelho
+            clone.lastElementChild.remove();
+            // Substitui inputs por texto puro preservando os valores calculados
+            clone.querySelectorAll('input').forEach(inp => {
+                const span = document.createElement('span');
+                span.innerText = inp.value;
+                inp.parentNode.replaceChild(span, inp);
+            });
+            rBody.appendChild(clone);
+        });
+
+        // Totais Gerais
+        const res = calcularTudo();
+        document.getElementById('tIcms').innerText = `R$ ${res.sumIcms.toFixed(2)}`;
+        document.getElementById('tPis').innerText = `R$ ${res.sumPis.toFixed(2)}`;
+        document.getElementById('tCofins').innerText = `R$ ${res.sumCofins.toFixed(2)}`;
+        document.getElementById('tIpi').innerText = `R$ ${res.sumIpi.toFixed(2)}`;
+        document.getElementById('tIbsCbs').innerText = `R$ ${res.sumIbsCbs.toFixed(2)}`;
+        document.getElementById('rTotalGeral').innerText = `R$ ${res.totGeral.toFixed(2)}`;
+
+        // Exibe o DANFE
+        const danfe = document.getElementById('danfe');
+        danfe.style.display = 'block';
+        danfe.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>

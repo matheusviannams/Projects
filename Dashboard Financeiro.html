@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro Avançado</title>
+    <style>
+        :root {
+            --primary-color: #1e293b;
+            --secondary-color: #3b82f6;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-color: #334155;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-box {
+            background-color: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .metric-value {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Dashboard Financeiro</h1>
+    <p style="text-align: center; color: #64748b;">Insira os dados básicos da empresa para gerar os indicadores e insights automáticos.</p>
+
+    <!-- Formulário de Entrada -->
+    <div class="card">
+        <h2>Dados de Entrada</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="receita">Receita Líquida</label>
+                <input type="number" id="receita" value="1200000" required>
+            </div>
+            <div class="form-group">
+                <label for="lucroLiquido">Lucro Líquido</label>
+                <input type="number" id="lucroLiquido" value="150000" required>
+            </div>
+            <div class="form-group">
+                <label for="cmv">CMV (Custo das Mercadorias Vendidas)</label>
+                <input type="number" id="cmv" value="600000" required>
+            </div>
+            <div class="form-group">
+                <label for="ebit">EBIT (Lucro Operacional)</label>
+                <input type="number" id="ebit" value="250000" required>
+            </div>
+            <div class="form-group">
+                <label for="depreciacao">Depreciação e Amortização</label>
+                <input type="number" id="depreciacao" value="50000" required>
+            </div>
+            <div class="form-group">
+                <label for="clientes">Contas a Receber (Clientes)</label>
+                <input type="number" id="clientes" value="150000" required>
+            </div>
+            <div class="form-group">
+                <label for="estoques">Estoques</label>
+                <input type="number" id="estoques" value="100000" required>
+            </div>
+            <div class="form-group">
+                <label for="fornecedores">Contas a Pagar (Fornecedores)</label>
+                <input type="number" id="fornecedores" value="80000" required>
+            </div>
+            <div class="form-group">
+                <label for="ativoTotal">Ativo Total</label>
+                <input type="number" id="ativoTotal" value="1500000" required>
+            </div>
+            <div class="form-group">
+                <label for="patrimonioLiquido">Patrimônio Líquido (PL)</label>
+                <input type="number" id="patrimonioLiquido" value="900000" required>
+            </div>
+            <div class="form-group">
+                <label for="passivoCirculante">Passivo Circulante (Curto Prazo)</label>
+                <input type="number" id="passivoCirculante" value="300000" required>
+            </div>
+            <div class="form-group">
+                <label for="ativoCirculante">Ativo Circulante (Curto Prazo)</label>
+                <input type="number" id="ativoCirculante" value="450000" required>
+            </div>
+        </div>
+        <button onclick="calcularIndicadores()">Gerar Insighs</button>
+    </div>
+
+    <!-- Resultados: 10 Indicadores -->
+    <div class="card" id="painelResultados" style="display:none;">
+        <h2>10 Indicadores Financeiros Essenciais (CFO)</h2>
+        <div class="results-grid">
+            <div class="metric-box">
+                <div>1. EBITDA</div>
+                <div class="metric-value" id="valEbitda">-</div>
+            </div>
+            <div class="metric-box">
+                <div>2. Margem EBITDA</div>
+                <div class="metric-value" id="valMargemEbitda">-</div>
+            </div>
+            <div class="metric-box">
+                <div>3. Margem Líquida</div>
+                <div class="metric-value" id="valMargemLiquida">-</div>
+            </div>
+            <div class="metric-box">
+                <div>4. PME (Prazo Médio Estoque)</div>
+                <div class="metric-value" id="valPme">-</div>
+            </div>
+            <div class="metric-box">
+                <div>5. PMR (Prazo Médio Recebimento)</div>
+                <div class="metric-value" id="valPmr">-</div>
+            </div>
+            <div class="metric-box">
+                <div>6. PMP (Prazo Médio Pagamento)</div>
+                <div class="metric-value" id="valPmp">-</div>
+            </div>
+            <div class="metric-box" style="border-left-color: #ef4444;">
+                <div>7. CCC (Ciclo de Caixa)</div>
+                <div class="metric-value" id="valCcc">-</div>
+            </div>
+            <div class="metric-box">
+                <div>8. Liquidez Corrente</div>
+                <div class="metric-value" id="valLiquidez">-</div>
+            </div>
+            <div class="metric-box">
+                <div>9. ROA (Retorno s/ Ativo)</div>
+                <div class="metric-value" id="valRoa">-</div>
+            </div>
+            <div class="metric-box">
+                <div>10. ROE (Retorno s/ PL)</div>
+                <div class="metric-value" id="valRoe">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 Insights Estratégicos -->
+    <div class="card" id="painelInsights" style="display:none;">
+        <h2>10 Insights Estratégicos para a Gestão</h2>
+        <ul id="listaInsights">
+            <!-- Inserido via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    function calcularIndicadores() {
+        // Capturar dados de entrada
+        const receita = parseFloat(document.getElementById('receita').value) || 0;
+        const lucroLiquido = parseFloat(document.getElementById('lucroLiquido').value) || 0;
+        const cmv = parseFloat(document.getElementById('cmv').value) || 0;
+        const ebit = parseFloat(document.getElementById('ebit').value) || 0;
+        const depreciacao = parseFloat(document.getElementById('depreciacao').value) || 0;
+        const clientes = parseFloat(document.getElementById('clientes').value) || 0;
+        const estoques = parseFloat(document.getElementById('estoques').value) || 0;
+        const fornecedores = parseFloat(document.getElementById('fornecedores').value) || 0;
+        const ativoTotal = parseFloat(document.getElementById('ativoTotal').value) || 0;
+        const patrimonioLiquido = parseFloat(document.getElementById('patrimonioLiquido').value) || 0;
+        const passivoCirculante = parseFloat(document.getElementById('passivoCirculante').value) || 0;
+        const ativoCirculante = parseFloat(document.getElementById('ativoCirculante').value) || 0;
+
+        // Cálculos dos 10 Indicadores
+        const ebitda = ebit + depreciacao;
+        const margemEbitda = receita > 0 ? (ebitda / receita) * 100 : 0;
+        const margemLiquida = receita > 0 ? (lucroLiquido / receita) * 100 : 0;
+        const pme = cmv > 0 ? (estoques / cmv) * 365 : 0;
+        const pmr = receita > 0 ? (clientes / receita) * 365 : 0;
+        const pmp = cmv > 0 ? (fornecedores / cmv) * 365 : 0;
+        const ccc = pme + pmr - pmp;
+        const liquidezCorrente = passivoCirculante > 0 ? (ativoCirculante / passivoCirculante) : 0;
+        const roa = ativoTotal > 0 ? (lucroLiquido / ativoTotal) * 100 : 0;
+        const roe = patrimonioLiquido > 0 ? (lucroLiquido / patrimonioLiquido) * 100 : 0;
+
+        // Exibir nos boxes de resultados
+        document.getElementById('valEbitda').innerText = ebitda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('valMargemEbitda').innerText = margemEbitda.toFixed(1) + '%';
+        document.getElementById('valMargemLiquida').innerText = margemLiquida.toFixed(1) + '%';
+        document.getElementById('valPme').innerText = pme.toFixed(1) + ' dias';
+        document.getElementById('valPmr').innerText = pmr.toFixed(1) + ' dias';
+        document.getElementById('valPmp').innerText = pmp.toFixed(1) + ' dias';
+        document.getElementById('valCcc').innerText = ccc.toFixed(1) + ' dias';
+        document.getElementById('valLiquidez').innerText = liquidezCorrente.toFixed(2);
+        document.getElementById('valRoa').innerText = roa.toFixed(1) + '%';
+        document.getElementById('valRoe').innerText = roe.toFixed(1) + '%';
+
+        // Geração dos 10 Insights Estratégicos
+        let insights = [];
+
+        insights.push(`<li><strong>1. Potencial de Geração de Caixa Operacional (EBITDA):</strong> Com um EBITDA de ${ebitda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} e margem de <strong>${margemEbitda.toFixed(1)}%</strong>, sua operação principal demonstra ${margemEbitda > 15 ? 'alta capacidade de gerar caixa antes dos efeitos financeiros e fiscais.' : 'uma margem restrita, exigindo controle rigoroso de custos operacionais.'}</li>`);
+
+        insights.push(`<li><strong>2. Conversão da Receita em Lucro Final (Margem Líquida):</strong> Sua margem líquida está em <strong>${margemLiquida.toFixed(1)}%</strong>. ${margemLiquida > 10 ? 'Excelente retenção de valor para o acionista após todas as deduções de despesas e impostos.' : 'Atenção às despesas financeiras e tributárias que podem estar drenando o lucro final.'}</li>`);
+
+        insights.push(`<li><strong>3. Necessidade de Capital de Giro (CCC):</strong> Seu Ciclo de Caixa é de <strong>${ccc.toFixed(1)} dias</strong>. ${ccc > 0 ? 'Isso significa que você imobiliza caixa para financiar a operação entre pagar custos e receber das vendas.' : 'Fantástico! Seu ciclo é negativo, o que significa que os fornecedores financiam o seu crescimento.'}</li>`);
+
+        insights.push(`<li><strong>4. Eficiência de Estoques (PME):</strong> O prazo médio de estoque é de <strong>${pme.toFixed(1)} dias</strong>. Avalie se esse giro está adequado ao seu setor ou se há mercadorias obsoletas retidas, o que engessa recursos financeiros preciosos.</li>`);
+
+        insights.push(`<li><strong>5. Gestão de Cobrança e Risco de Crédito (PMR):</strong> Seus clientes pagam em média em <strong>${pmr.toFixed(1)} dias</strong>. Um PMR elevado exige políticas rígidas de concessão de crédito e acompanhamento constante da inadimplência.</li>`);
+
+        insights.push(`<li><strong>6. Poder de Barganha com Fornecedores (PMP):</strong> Você quita seus compromissos com fornecedores em <strong>${pmp.toFixed(1)} dias</strong>. ${pmp > pme ? 'Boa notícia: você vende os produtos antes de precisar pagá-los.' : 'Cuidado: você paga os fornecedores antes de girar o estoque, pressionando o caixa de curto prazo.'}</li>`);
+
+        insights.push(`<li><strong>7. Solvência e Segurança Imediata (Liquidez Corrente):</strong> O índice de <strong>${liquidezCorrente.toFixed(2)}</strong> indica que para cada R$ 1,00 de dívida de curto prazo, você possui R$ ${liquidezCorrente.toFixed(2)} em ativos circulantes. Valores acima de 1.2 indicam boa folga financeira.</li>`);
+
+        insights.push(`<li><strong>8. Retorno sobre o Capital Investido (ROA):</strong> O ROA de <strong>${roa.toFixed(1)}%</strong> mostra a eficiência global dos ativos da empresa na geração de lucro, independentemente de como foram financiados.</li>`);
+
+        insights.push(`<li><strong>9. Rentabilidade do Acionista (ROE):</strong> O ROE de <strong>${roe.toFixed(1)}%</strong> mede o retorno obtido sobre o patrimônio investido pelos sócios, sendo um termômetro vital para avaliar a atratividade do negócio frente ao mercado de capitais.</li>`);
+
+        insights.push(`<li><strong>10. Alinhamento Estratégico de Curto e Longo Prazo:</strong> A relação consolidada entre o lucro operacional (EBIT) e os indicadores de giro revela que o crescimento da empresa está ${ccc <= 30 && margemLiquida > 8 ? 'equilibrado e com boa sustentabilidade financeira' : 'exigindo ajustes finos no capital de giro e nas margens de preço'}.</li>`);
+
+        // Exibir seções
+        document.getElementById('painelResultados').style.display = 'block';
+        document.getElementById('painelInsights').style.display = 'block';
+        document.getElementById('listaInsights').innerHTML = insights.join('');
+    }
+</script>
+
+</body>
+</html>

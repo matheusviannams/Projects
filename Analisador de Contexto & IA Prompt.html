@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador Semântico e Gerador de Prompt</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+        .container { max-width: 850px; margin: auto; background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #64748b; margin-bottom: 25px; }
+        .upload-area { border: 2px dashed var(--primary); padding: 35px; text-align: center; cursor: pointer; color: var(--primary); border-radius: 8px; background: #fdfdfd; transition: background 0.2s; }
+        .upload-area:hover { background: #f1f5f9; }
+        .results { margin-top: 30px; display: none; }
+        .card { background: #f8fafc; border-left: 4px solid var(--primary); padding: 15px 20px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
+        textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 13px; background: #fff; resize: vertical; box-sizing: border-box; }
+        .btn-copy { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 8px; }
+        .btn-copy:hover { background: #4338ca; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Analisador de Contexto & IA Prompt</h1>
+    <p class="subtitle">Descubra o tema da planilha ou gere um comando ideal para o ChatGPT/Claude.</p>
+    
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <strong>Clique aqui para anexar sua planilha (.xlsx, .csv)</strong>
+        <div style="font-size: 13px; color: #64748b; margin-top: 5px;">O arquivo é lido 100% de forma segura no seu navegador</div>
+        <input type="file" id="fileInput" hidden accept=".xlsx, .xls, .csv">
+    </div>
+
+    <div id="resultsArea" class="results">
+        <div class="card">
+            <h3>Tema Provável (Análise Automática)</h3>
+            <p id="temaDetectado">Calculando...</p>
+        </div>
+
+        <div class="card">
+            <h3>Resumo Estrutural</h3>
+            <p id="resumoDados">Calculando...</p>
+        </div>
+
+        <div class="card">
+            <h3>Prompt Otimizado para o ChatGPT / Claude</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Caso precise de uma análise profunda, copie este texto e cole em uma IA generativa:</p>
+            <textarea id="promptGerado" readonly></textarea>
+            <button class="btn-copy" onclick="copiarPrompt()">Copiar Prompt</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, {type: 'array'});
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            
+            if (json.length < 2) {
+                alert("A planilha parece estar vazia ou sem dados suficientes.");
+                return;
+            }
+
+            analisarPlanilha(json);
+        } catch (err) {
+            alert("Erro ao ler o arquivo. Certifique-se de que é uma planilha válida.");
+            console.error(err);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+function analisarPlanilha(data) {
+    const header = data[0].filter(Boolean); // Remove colunas vazias
+    const amostraLinhas = data.slice(1, 4); // Pega até 3 linhas de exemplo
+    const totalLinhas = data.length - 1;
+    const totalColunas = header.length;
+
+    // Juntas todas as palavras dos cabeçalhos e amostras para detecção inteligente
+    const textoCompleto = (header.join(" ") + " " + amostraLinhas.flat().join(" ")).toLowerCase();
+
+    // Dicionário de termos para adivinhar o tema
+    let tema = "Conjunto de Dados Genérico / Misto";
+    if (/valor|preço|venda|faturamento|lucro|receita|despesa|custo/i.test(textoCompleto)) {
+        tema = "Financeiro / Comercial (Vendas, Custos ou Faturamento)";
+    } else if (/nome|cliente|email|telefone|cpf|cnpj|endereço|contato/i.test(textoCompleto)) {
+        tema = "Cadastro de Clientes / CRM / Contatos";
+    } else if (/produto|estoque|sku|quantidade|armazém|lote|fornecedor/i.test(textoCompleto)) {
+        tema = "Logística / Gestão de Estoque e Produtos";
+    } else if (/colaborador|funcionario|salário|cargo|departamento|rh|ponto/i.test(textoCompleto)) {
+        tema = "Recursos Humanos (RH) / Gestão de Pessoal";
+    } else if (/projeto|tarefa|status|prazo|etapa|responsável|cronograma/i.test(textoCompleto)) {
+        tema = "Gestão de Projetos / Cronograma de Atividades";
+    }
+
+    // Exibir Resumo na Tela
+    document.getElementById('temaDetectado').innerHTML = `<b>${tema}</b>`;
+    document.getElementById('resumoDados').innerHTML = `O arquivo possui <b>${totalLinhas} linhas</b> e <b>${totalColunas} colunas</b> principais. Os principais campos identificados foram: <i>${header.slice(0, 5).join(", ")}${header.length > 5 ? ", ..." : ""}</i>.`;
+
+    // Montar o Prompt Inteligente sob medida
+    const promptPronto = `Atue como um Cientista de Dados e Especialista em Negócios. Tenho uma planilha que trata sobre "${tema}". Ela possui ${totalLinhas} registros e as seguintes colunas: [ ${header.join(", ")} ]. Uma amostra dos dados indica termos como: "${amostraLinhas.flat().slice(0, 6).join(", ")}...". Com base nisso, quais são os 5 principais insights estratégicos ou problemas que eu deveria investigar nestes dados?`;
+
+    document.getElementById('promptGerado').value = promptPronto;
+    document.getElementById('resultsArea').style.display = 'block';
+}
+
+function copiarPrompt() {
+    const textarea = document.getElementById('promptGerado');
+    textarea.select();
+    navigator.clipboard.writeText(textarea.value);
+    alert("Prompt copiado para a área de transferência! Agora basta colar no ChatGPT ou Claude.");
+}
+</script>
+
+</body>
+</html>

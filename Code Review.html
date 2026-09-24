@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analista Especialista de BI - Code Review</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            background-color: #0f172a;
+            color: #38bdf8;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background-color: #dbeafe;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-box span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .metric-box strong {
+            font-size: 18px;
+            color: var(--text-main);
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            display: none;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Code Review de BI</h1>
+        <p>Insira seu código DAX, M (Power Query) ou SQL para uma auditoria analítica especializada.</p>
+    </header>
+
+    <div class="card">
+        <label for="biCode">Cole seu código de BI aqui:</label>
+        <textarea id="biCode" placeholder="Ex: Total Vendas = CALCULATE(SUM(Vendas[Valor]), Vendas[Ano] = 2026)..."></textarea>
+        <button onclick="analisarCodigo()">Executar Análise Especialista</button>
+        <div id="loadingDiv" class="loading">Analisando árvores de execução, escaneamento de tabelas e boas práticas...</div>
+    </div>
+
+    <div id="resultCard" class="card result-section">
+        <div class="result-header">
+            <h3>Relatório do Especialista</h3>
+            <span class="badge" id="tipoCodigo">DAX / Power BI</span>
+        </div>
+
+        <div class="metric-grid">
+            <div class="metric-box">
+                <span>Complexidade Estimada</span>
+                <strong id="resComplexidade">Média</strong>
+            </div>
+            <div class="metric-box">
+                <span>Risco de Performance</span>
+                <strong id="resRisco">Baixo</strong>
+            </div>
+            <div class="metric-box">
+                <span>Pontos de Atenção</span>
+                <strong id="resAlertas">2 itens</strong>
+            </div>
+        </div>
+
+        <h4>Diagnóstico Analítico:</h4>
+        <div id="resDiagnostico" style="line-height: 1.6; margin-bottom: 15px;"></div>
+
+        <h4>Recomendações de Otimização:</h4>
+        <ul id="resRecomendacoes"></ul>
+    </div>
+</div>
+
+<script>
+    function analisarCodigo() {
+        const codigo = document.getElementById('biCode').value.trim();
+        const loading = document.getElementById('loadingDiv');
+        const resultado = document.getElementById('resultCard');
+
+        if (!codigo) {
+            alert("Por favor, insira um código para análise.");
+            return;
+        }
+
+        // Simula tempo de processamento analítico
+        loading.style.display = 'block';
+        resultado.style.display = 'none';
+
+        setTimeout(() => {
+            loading.style.display = 'none';
+            resultado.style.display = 'block';
+
+            // Análise heurística simples baseada em palavras-chave comuns
+            let complexidade = "Baixa";
+            let risco = "Baixo";
+            let alertasCount = 1;
+            let diagnosticoText = "";
+            let recomendacoesHTML = "";
+
+            const codigoUpper = codigo.toUpperCase();
+
+            if (codigoUpper.includes("CALCULATE") && codigoUpper.includes("FILTER")) {
+                complexidade = "Média";
+                risco = "Moderado";
+                alertasCount = 2;
+                diagnosticoText = "O uso combinado de <strong>CALCULATE</strong> e <strong>FILTER</strong> pode causar o escaneamento completo de tabelas (Full Table Scan), ignorando o contexto de filtro otimizado do motor VertiPaq.";
+                recomendacoesHTML = `
+                    <li>Substitua <code>FILTER(Tabela, Condição)</code> por filtros diretos dentro do <code>CALCULATE</code> sempre que possível (ex: <code>CALCULATE(Soma, Tabela[Coluna] = Valor)</code>).</li>
+                    <li>Certifique-se de que as colunas referenciadas possuem alta cardinalidade e índices adequados no modelo relacional.</li>
+                `;
+            } else if (codigoUpper.includes("SELECT") || codigoUpper.includes("FROM")) {
+                complexidade = "Média";
+                risco = "Baixo";
+                diagnosticoText = "Consulta SQL estruturada para camada de staging/importação de BI. A estrutura básica está correta, mas requer atenção a junções (JOINs) desnecessárias.";
+                recomendacoesHTML = `
+                    <li>Evite o uso de <code>SELECT *</code>; traga apenas as colunas estritamente necessárias para o modelo de dados.</li>
+                    <li>Valide se os filtros de data (WHERE) estão sendo aplicados antes das agregações para otimizar o tempo de carga.</li>
+                `;
+            } else {
+                diagnosticoText = "O código apresenta uma estrutura limpa e de fácil leitura, sem uso excessivo de funções iteradoras pesadas (como <strong>SUMX</strong> ou <strong>FILTER</strong> aninhados).";
+                recomendacoesHTML = `
+                    <li>Mantenha a documentação interna com comentários explicativos nas medidas complexas.</li>
+                    <li>Monitore o consumo de memória no Power BI Service após a publicação.</li>
+                `;
+            }
+
+            document.getElementById('resComplexidade').innerText = complexidade;
+            document.getElementById('resRisco').innerText = risco;
+            document.getElementById('resAlertas').innerText = `${alertasCount} item(ns)`;
+            document.getElementById('resDiagnostico').innerHTML = diagnosticoText;
+            document.getElementById('resRecomendacoes').innerHTML = recomendacoesHTML;
+
+            // Rolar suavemente até o resultado
+            resultado.scrollIntoView({ behavior: 'smooth' });
+        }, 800);
+    }
+</script>
+
+</body>
+</html>

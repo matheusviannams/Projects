@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Impostos - Aquisição de Veículo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 650px;
+            background: #fff;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2471a3;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            background: #ebf5fb;
+            border-left: 5px solid #2980b9;
+            border-radius: 4px;
+            display: none;
+        }
+        .info-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        th {
+            background-color: #eaeded;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #d5f5e3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Simulador de Impostos: Compra de Veículo</h2>
+    
+    <div class="form-group">
+        <label for="tipoVeiculo">Tipo de Veículo:</label>
+        <select id="tipoVeiculo" onchange="toggleOrigem()">
+            <option value="usado">Carro Usado / Seminovos</option>
+            <option value="novo">Carro Zero Km (Fabricação Nacional)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="valorVeiculo">Valor do Veículo (R$):</label>
+        <input type="number" id="valorVeiculo" placeholder="Ex: 80000" min="0">
+    </div>
+
+    <div class="form-group">
+        <label for="estado">Estado de Compra (para Alíquota de IPVA):</label>
+        <select id="estado">
+            <option value="SP">São Paulo (IPVA: 4.0%)</option>
+            <option value="RJ">Rio de Janeiro (IPVA: 4.0%)</option>
+            <option value="MG">Minas Gerais (IPVA: 4.0%)</option>
+            <option value="PR">Paraná (IPVA: 3.5%)</option>
+            <option value="RS">Rio Grande do Sul (IPVA: 3.0%)</option>
+            <option value="SC">Santa Catarina (IPVA: 2.0%)</option>
+            <option value="BA">Bahia (IPVA: 2.5%)</option>
+            <option value="PE">Pernambuco (IPVA: 3.0%)</option>
+            <option value="CE">Ceará (IPVA: 3.0%)</option>
+            <option value="DF">Distrito Federal (IPVA: 3.5%)</option>
+            <option value="GO">Goiás (IPVA: 3.45%)</option>
+            <option value="ES">Espírito Santo (IPVA: 2.0%)</option>
+            <option value="MT">Mato Grosso (IPVA: 3.0%)</option>
+            <option value="MS">Mato Grosso do Sul (IPVA: 3.0%)</option>
+            <option value="PA">Pará (IPVA: 2.5%)</option>
+            <option value="MA">Maranhão (IPVA: 2.5%)</option>
+            <option value="PB">Paraíba (IPVA: 2.5%)</option>
+            <option value="RN">Rio Grande do Norte (IPVA: 3.0%)</option>
+            <option value="AL">Alagoas (IPVA: 3.0%)</option>
+            <option value="SE">Sergipe (IPVA: 2.5%)</option>
+            <option value="PI">Piauí (IPVA: 2.5%)</option>
+            <option value="AM">Amazonas (IPVA: 3.0%)</option>
+            <option value="RO">Rondônia (IPVA: 2.0%)</option>
+            <option value="AC">Acre (IPVA: 2.0%)</option>
+            <option value="TO">Tocantins (IPVA: 2.0%)</option>
+            <option value="AP">Amapá (IPVA: 3.0%)</option>
+            <option value="RR">Roraima (IPVA: 2.0%)</option>
+        </select>
+    </div>
+
+    <button onclick="calcularImpostosVeiculo()">Calcular Impostos e Taxas</button>
+
+    <!-- Resultados -->
+    <div id="resultado" class="result-box">
+        <h3>Detalhamento de Impostos e Taxas</h3>
+        <p id="contextoImpostos" class="info-text"></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Imposto / Taxa Obrigatória</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="linhaIPI">
+                    <td>IPI (Imposto sobre Prod. Industrializados)*</td>
+                    <td id="resIPI">R$ 0,00</td>
+                </tr>
+                <tr id="linhaICMS">
+                    <td>ICMS (Imposto sobre Circ. de Mercadorias)*</td>
+                    <td id="resICMS">R$ 0,00</td>
+                </tr>
+                <tr id="linhaPIS">
+                    <td>PIS / COFINS (Tributação Federal)*</td>
+                    <td id="resPIS">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>IPVA Proporcional (Imposto Estadual)</td>
+                    <td id="resIPVA">R$ 0,00</td>
+                </tr>
+                <tr>
+                    <td>Taxa de Emplacamento e Licenciamento</td>
+                    <td id="resLicenciamento">R$ 250,00</td>
+                </tr>
+                <tr>
+                    <td>Taxa de Transferência do Veículo</td>
+                    <td id="resTransferencia">R$ 0,00</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total de Custos de Aquisição</td>
+                    <td id="resTotal">R$ 0,00</td>
+                </tr>
+            </tbody>
+        </table>
+        <p id="notaRodape" class="info-text" style="margin-top:15px; font-size:11px;"></p>
+    </div>
+</div>
+
+<script>
+    // Tabela aproximada de alíquotas de IPVA por estado para carros de passeio a gasolina/flex
+    const aliquotasIPVA = {
+        SP: 0.04, RJ: 0.04, MG: 0.04, PR: 0.035, RS: 0.03, SC: 0.02,
+        BA: 0.025, PE: 0.03, CE: 0.03, DF: 0.035, GO: 0.0345, ES: 0.02,
+        MT: 0.03, MS: 0.03, PA: 0.025, MA: 0.025, PB: 0.025, RN: 0.03,
+        AL: 0.03, SE: 0.025, PI: 0.025, AM: 0.03, RO: 0.02, AC: 0.02,
+        TO: 0.02, AP: 0.03, RR: 0.02
+    };
+
+    function toggleOrigem() {
+        // Ajusta a exibição informativa se necessário
+    }
+
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calcularImpostosVeiculo() {
+        const tipoVeiculo = document.getElementById('tipoVeiculo').value;
+        const valorVeiculo = parseFloat(document.getElementById('valorVeiculo').value) || 0;
+        const estado = document.getElementById('estado').value;
+
+        if (valorVeiculo <= 0) {
+            alert("Por favor, insira um valor de aquisição válido.");
+            return;
+        }
+
+        // Recupera alíquota do IPVA do estado selecionado
+        const aliquotaEstado = aliquotasIPVA[estado] || 0.03;
+        
+        let ipva = 0;
+        let licenciamento = 0;
+        let transferencia = 0;
+        
+        // Estimativas de impostos de fábrica (IPI, ICMS, PIS/COFINS já embutidos no preço do Zero Km)
+        // Valores de referência média na carga tributária de um carro flex 1.0 a 2.0
+        let ipi = 0;
+        let icms = 0;
+        let pisCofins = 0;
+
+        if (tipoVeiculo === 'novo') {
+            // Em carros novos, mostramos a estimativa da carga tributária já inclusa no preço de NF
+            ipi = valorVeiculo * 0.07;       // Média estimada para motores flex
+            icms = valorVeiculo * 0.12;      // ICMS sobre veículos novos na maioria dos estados
+            pisCofins = valorVeiculo * 0.116; // PIS/COFINS faturamento industrial e comercial
+            
+            ipva = valorVeiculo * aliquotaEstado; // Paga IPVA proporcional integral no emplacamento
+            licenciamento = 250; // Taxa média de primeiro emplacamento + placas mercosul + licenciamento
+            transferencia = 0;   // Não há taxa de transferência para primeiro dono
+            
+            document.getElementById('linhaIPI').style.display = 'table-row';
+            document.getElementById('linhaICMS').style.display = 'table-row';
+            document.getElementById('linhaPIS').style.display = 'table-row';
+            document.getElementById('contextoImpostos').innerText = `Para veículos zero km, os impostos industriais e de venda (IPI, ICMS, PIS/COFINS) já vêm embutidos no preço de nota fiscal. Exibimos abaixo a estimativa dessa carga tributária interna.`;
+            document.getElementById('notaRodape').innerText = `*Os valores de IPI, ICMS e PIS/COFINS são estimados com base na carga tributária média nacional embutida no preço final de fábrica.`;
+        } else {
+            // Em carros usados, não há nova incidência de IPI, ICMS ou PIS/COFINS na compra entre particulares/lojas comuns
+            ipi = 0;
+            icms = 0;
+            pisCofins = 0;
+            
+            // O IPVA geralmente já está pago pelo proprietário anterior, mas simulamos o custo anual do imposto no estado
+            ipva = valorVeiculo * aliquotaEstado; 
+            licenciamento = 0; // Já licenciado no ano vigente em tese
+            transferencia = 220; // Taxa de emissão de novo CRV / Transferência de propriedade do Detran
+            
+            document.getElementById('linhaIPI').style.display = 'none';
+            document.getElementById('linhaICMS').style.display = 'none';
+            document.getElementById('linhaPIS').style.display = 'none';
+            document.getElementById('contextoImpostos').innerText = `Para veículos usados, os impostos de fabricação não incidem novamente. Os custos principais concentram-se na transferência e na manutenção do IPVA estadual.`;
+            document.getElementById('notaRodape').innerText = `Nota: Em transações de usados, o IPVA exibido representa a taxa anual obrigatória do estado selecionado.`;
+        }
+
+        const totalCustos = ipva + licenciamento + transferencia;
+
+        // Atualizar valores na tela
+        document.getElementById('resIPI').innerText = formatarMoeda(ipi);
+        document.getElementById('resICMS').innerText = formatarMoeda(icms);
+        document.getElementById('resPIS').innerText = formatarMoeda(pisCofins);
+        document.getElementById('resIPVA').innerText = formatarMoeda(ipva);
+        document.getElementById('resLicenciamento').innerText = formatarMoeda(licenciamento);
+        document.getElementById('resTransferencia').innerText = formatarMoeda(transferencia);
+        
+        // Total que o usuário gasta além do veículo (taxas e IPVA adicionais no momento da compra)
+        document.getElementById('resTotal').innerText = formatarMoeda(valorVeiculo + totalCustos);
+
+        // Exibir caixa de resultados
+        document.getElementById('resultado').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

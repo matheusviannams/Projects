@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI & Tributação Farmacêutica - ICMS, PIS/COFINS e ST</title>
+    <style>
+        :root { 
+            --primary-color: #7c2d12; 
+            --primary-hover: #651c0a;
+            --bg-color: #fffbeb; 
+            --text-color: #1f2937; 
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --accent-yellow: #d97706;
+            --accent-blue: #2563eb;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin-top: 0;
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-bottom: 2px solid #fde68a;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            font-size: 13px;
+        }
+        input, select { 
+            width: 100%; 
+            padding: 9px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            background-color: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(124, 45, 18, 0.1);
+        }
+        button { 
+            width: 100%; 
+            background-color: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-weight: bold; 
+            font-size: 16px;
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background-color 0.2s;
+        }
+        button:hover { 
+            background-color: var(--primary-hover); 
+        }
+        .bi-dashboard { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background-color: #fef3c7; 
+            border-radius: 8px; 
+            border: 1px solid #fcd34d;
+        }
+        .bi-dashboard h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #fcd34d;
+            padding-bottom: 8px;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #fde68a;
+            text-align: center;
+        }
+        .metric-card span {
+            display: block;
+            font-size: 11px;
+            color: #78716c;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .metric-card strong {
+            font-size: 14px;
+            color: #1c1917;
+        }
+        .insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .insights-list li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .insight-success { background-color: #ecfdf5; color: #065f46; border-left: 4px solid var(--accent-green); }
+        .insight-warning { background-color: #fffbeb; color: #92400e; border-left: 4px solid var(--accent-yellow); }
+        .insight-danger { background-color: #fef2f2; color: #991b1b; border-left: 4px solid var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BI & Inteligência Tributária (Setor Farmacêutico)</h2>
+    
+    <div class="section-title">1. Dados do Produto e Rota Fiscal</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>NCM do Produto:</label>
+            <input type="text" id="ncm" placeholder="Ex: 3004.20.10" value="30042010">
+        </div>
+        <div class="form-group">
+            <label>Valor do Produto / Operação (R$):</label>
+            <input type="number" id="valorOperacao" step="0.01" value="100.00">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Origem da Venda:</label>
+            <select id="origem">
+                <option value="RJ" selected>RJ - Rio de Janeiro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Destino da Venda:</label>
+            <select id="destino">
+                <option value="RJ">RJ (Rio de Janeiro)</option>
+                <option value="SP" selected>SP (São Paulo)</option>
+                <option value="MG">MG (Minas Gerais)</option>
+                <option value="ES">ES (Espírito Santo)</option>
+                <option value="PB">PB (Paraíba)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">2. Alíquotas e Parâmetros Tributários</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Alíquota ICMS Interestadual / Interna (%):</label>
+            <input type="number" id="aliquotaIcms" step="0.1" value="12.0">
+        </div>
+        <div class="form-group">
+            <label>Alíquota IPI (%):</label>
+            <input type="number" id="aliquotaIpi" step="0.1" value="0.0">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Alíquota PIS (%):</label>
+            <input type="number" id="aliquotaPis" step="0.01" value="2.10">
+        </div>
+        <div class="form-group">
+            <label>Alíquota COFINS (%):</label>
+            <input type="number" id="aliquotaCofins" step="0.01" value="9.90">
+        </div>
+    </div>
+
+    <div class="section-title">3. Substituição Tributária (MVA, PMC e PMPF)</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>MVA / IVA-ST (%):</label>
+            <input type="number" id="mva" step="0.1" value="35.0">
+        </div>
+        <div class="form-group">
+            <label>PMC - Preço Máximo ao Consumidor (R$) [Opcional]:</label>
+            <input type="number" id="pmc" step="0.01" placeholder="Ex: 145.50" value="145.50">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>PMPF - Preço Médio Ponderado (R$) [Opcional]:</label>
+            <input type="number" id="pmpf" step="0.01" placeholder="Deixe 0 se não houver" value="0.00">
+        </div>
+    </div>
+    
+    <button onclick="gerarTributarioBI()">Processar Apuração & BI Fiscal</button>
+
+    <div id="biDashboard" class="bi-dashboard" style="display:none;">
+        <h3>Dashboard de Apuração de Impostos & Margens</h3>
+        
+        <!-- Bloco 1: Apuração Básica -->
+        <div class="section-title" style="margin-top: 5px;">Apuração de Tributos Próprios</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>ICMS Próprio</span><strong id="resIcmsProprio">-</strong></div>
+            <div class="metric-card"><span>IPI Apurado</span><strong id="resIpi">-</strong></div>
+            <div class="metric-card"><span>PIS Apurado</span><strong id="resPis">-</strong></div>
+            <div class="metric-card"><span>COFINS Apurado</span><strong id="resCofins">-</strong></div>
+        </div>
+
+        <!-- Bloco 2: Substituição Tributária -->
+        <div class="section-title" style="margin-top: 5px;">Substituição Tributária (ICMS ST)</div>
+        <div class="metric-grid">
+            <div class="metric-card"><span>Base de Cálculo ST</span><strong id="resBcSt">-</strong></div>
+            <div class="metric-card"><span>ICMS ST Apurado</span><strong id="resIcmsSt">-</strong></div>
+            <div class="metric-card"><span>Carga Tributária Total</span><strong id="resCargaTotal">-</strong></div>
+            <div class="metric-card"><span>% Carga s/ Operação</span><strong id="resPctCarga">-</strong></div>
+        </div>
+
+        <div class="section-title" style="margin-top: 15px;">Insights Fiscais & Alertas Estratégicos</div>
+        <ul class="insights-list" id="biInsights">
+            <!-- Injetado via JS -->
+        </ul>
+    </div>
+</div>
+
+<script>
+function gerarTributarioBI() {
+    const ncm = document.getElementById('ncm').value.trim();
+    const valorOperacao = parseFloat(document.getElementById('valorOperacao').value) || 0;
+    const origem = document.getElementById('origem').value;
+    const destino = document.getElementById('destino').value;
+    const aliquotaIcms = parseFloat(document.getElementById('aliquotaIcms').value) / 100;
+    const aliquotaIpi = parseFloat(document.getElementById('aliquotaIpi').value) / 100;
+    const aliquotaPis = parseFloat(document.getElementById('aliquotaPis').value) / 100;
+    const aliquotaCofins = parseFloat(document.getElementById('aliquotaCofins').value) / 100;
+    const mva = parseFloat(document.getElementById('mva').value) / 100;
+    const pmc = parseFloat(document.getElementById('pmc').value) || 0;
+    const pmpf = parseFloat(document.getElementById('pmpf').value) || 0;
+
+    if (valorOperacao <= 0) {
+        alert("Informe o valor da operação corretamente.");
+        return;
+    }
+
+    // --- CÁLCULOS FISCAIS ---
+    const icmsProprio = valorOperacao * aliquotaIcms;
+    const ipi = valorOperacao * aliquotaIpi;
+    const pis = valorOperacao * aliquotaPis;
+    const cofins = valorOperacao * aliquotaCofins;
+
+    // Definição da Base de Cálculo do ICMS ST (Hierarquia: PMPF > PMC > Valor da Operação + MVA)
+    let baseCalculoSt = 0;
+    let tipoBaseSt = "";
+
+    if (pmpf > 0) {
+        baseCalculoSt = pmpf;
+        tipoBaseSt = "PMPF";
+    } else if (pmc > 0) {
+        baseCalculoSt = pmc;
+        tipoBaseSt = "PMC";
+    } else {
+        baseCalculoSt = (valorOperacao + ipi) * (1 + mva);
+        tipoBaseSt = "Valor + MVA";
+    }
+
+    // ICMS ST = (Base ICMS ST * Alíquota Interna de Destino) - ICMS Próprio
+    // Para fins de simulação interestadual padrão com destino SP, usa-se a alíquota interna de destino (ex: 18%)
+    const aliquotaInternaDestino = 0.18; 
+    const icmsStBruto = baseCalculoSt * aliquotaInternaDestino;
+    let icmsSt = icmsStBruto - icmsProprio;
+    if (icmsSt < 0) icmsSt = 0;
+
+    const cargaTributariaTotal = icmsProprio + ipi + pis + cofins + icmsSt;
+    const pctCargaTotal = (cargaTributariaTotal / valorOperacao) * 100;
+
+    // --- EXIBIÇÃO NOS CARDS ---
+    document.getElementById('resIcmsProprio').innerText = icmsProprio.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resIpi').innerText = ipi.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resPis').innerText = pis.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resCofins').innerText = cofins.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+    document.getElementById('resBcSt').innerText = baseCalculoSt.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) + ` (${tipoBaseSt})`;
+    document.getElementById('resIcmsSt').innerText = icmsSt.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resCargaTotal').innerText = cargaTributariaTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    document.getElementById('resPctCarga').innerText = pctCargaTotal.toFixed(2) + "%";
+
+    // --- MOTOR DE INSIGHTS DE BI FISCAL ---
+    let insightsHtml = '';
+
+    if (origem === destino) {
+        insightsHtml += `<li class="insight-success"><strong>Operação Interna (${origem} -> ${destino}):</strong> Tributação dentro do mesmo estado. Verificar reduções do Convênio ICMS 87/02 aplicáveis ao NCM ${ncm}.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-warning"><strong>Operação Interestadual (${origem} -> ${destino}):</strong> Rota RJ -> SP ativada. Aplicação de alíquota interestadual de 12% com retenção de ICMS-ST via PMC regulado pela CMED.</li>`;
+    }
+
+    if (icmsSt > 0) {
+        insightsHtml += `<li class="insight-danger"><strong>Retenção de ICMS ST (${tipoBaseSt}):</strong> O imposto retido por substituição tributária adicionou R$ ${icmsSt.toFixed(2)} de encargo financeiro na cadeia, tendo como base o teto ao consumidor de R$ ${pmc.toFixed(2)}.</li>`;
+    }
+
+    insightsHtml += `<li class="insight-success"><strong>Regime Monofásico PIS/COFINS:</strong> Alíquotas configuradas para o padrão industrial (2,1% e 9,9%). Caso sua empresa seja distribuidora ou farmácia revendedora, lembre-se de que a tributação nestes campos deve ser zero (monofásico na origem).</li>`;
+
+    if (pctCargaTotal > 30) {
+        insightsHtml += `<li class="insight-danger"><strong>Carga Tributária Efetiva Elevada (${pctCargaTotal.toFixed(1)}%):</strong> O somatório de tributos próprios e ST sobre os R$ ${valorOperacao.toFixed(2)} de operação representa um peso considerável no preço final.</li>`;
+    } else {
+        insightsHtml += `<li class="insight-success"><strong>Carga Tributária Apurada:</strong> Carga total estimada em ${pctCargaTotal.toFixed(1)}% sobre o valor da nota.</li>`;
+    }
+
+    document.getElementById('biInsights').innerHTML = insightsHtml;
+    document.getElementById('biDashboard').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

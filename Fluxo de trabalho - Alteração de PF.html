@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Fluxo de Trabalho Interativo</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+        }
+
+        body { font-family: sans-serif; background-color: var(--bg); padding: 40px; }
+        .container { max-width: 600px; margin: 0 auto; }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        /* O Balão Interativo */
+        .checkbox-ball {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary);
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-right: 15px;
+            user-select: none;
+        }
+
+        /* Estilo quando marcado com X */
+        .checkbox-ball.checked {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            width: 100%;
+        }
+
+        .step-card.done { opacity: 0.6; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Fluxo de Trabalho</h2>
+
+    <!-- Exemplo de passo -->
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">1</div>
+        <div class="step-card">Verificar tabela vigente - Pendente de ação</div>
+    </div>
+
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">2</div>
+        <div class="step-card">Conferir duplicidade de códigos</div>
+    </div>
+
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">3</div>
+        <div class="step-card">Validar Região (RJ: Grupo 3 / ES: Grupo 4)</div>
+    </div>
+
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">4</div>
+        <div class="step-card">Importar para ProcFit</div>
+    </div>
+
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">5</div>
+        <div class="step-card">Conferir se rodou corretamente</div>
+    </div>
+
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">6</div>
+        <div class="step-card">Atualizar minha Base Resumo</div>
+    </div>
+
+    <div class="step-item">
+        <div class="checkbox-ball" onclick="toggleStep(this)">7</div>
+        <div class="step-card">Alterar nomenclatura para " - PF OK"</div>
+    </div>
+</div>
+
+<script>
+    function toggleStep(element) {
+        // Alterna a classe 'checked' no balão
+        element.classList.toggle('checked');
+        
+        // Coloca o X ou o número
+        if (element.classList.contains('checked')) {
+            element.innerHTML = '✕';
+        } else {
+            // Recupera o número original (baseado na ordem no HTML)
+            const index = Array.from(document.querySelectorAll('.checkbox-ball')).indexOf(element) + 1;
+            element.innerHTML = index;
+        }
+
+        // Opcional: risca o texto ao lado
+        element.nextElementSibling.classList.toggle('done');
+    }
+</script>
+
+</body>
+</html>
